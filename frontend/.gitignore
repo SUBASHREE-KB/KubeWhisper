@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+Dockerfile
+nginx.conf
+.env
+nul
+package-lock.json
+.DS_Store

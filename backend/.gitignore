@@ -1,0 +1,12 @@
+node_modules/
+.env
+*.log
+.DS_Store
+coverage/
+.nyc_output/
+
+.env.example
+Dockerfile
+nul
+package-lock.json
+
