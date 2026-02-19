@@ -1,61 +1,69 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        bg: {
-          darkest: '#0A0A0A',
-          dark: '#171717',
-          medium: '#262626',
-          hover: '#404040',
+        navy: {
+          950: '#060B14',
+          900: '#0B1120',
+          800: '#111827',
+          700: '#1E293B',
+          600: '#334155',
         },
-        border: {
-          dark: '#262626',
-          light: '#404040',
+        purple: {
+          500: '#A855F7',
+          400: '#C084FC',
+          300: '#D8B4FE',
         },
-        text: {
-          primary: '#FAFAFA',
-          secondary: '#A3A3A3',
-          muted: '#737373',
+        pink: {
+          500: '#EC4899',
+          400: '#F472B6',
+          300: '#F9A8D4',
         },
-        status: {
-          success: '#22C55E',
-          warning: '#EAB308',
-          error: '#EF4444',
-          info: '#3B82F6',
-        }
+        cyber: {
+          green: '#10B981',
+          red: '#EF4444',
+          yellow: '#F59E0B',
+          purple: '#A855F7',
+          pink: '#EC4899',
+        },
+        glass: {
+          light: 'rgba(255, 255, 255, 0.05)',
+          medium: 'rgba(255, 255, 255, 0.08)',
+          heavy: 'rgba(255, 255, 255, 0.12)',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'glow-success': '0 0 10px #22C55E',
-        'glow-warning': '0 0 10px #EAB308',
-        'glow-error': '0 0 10px #EF4444',
-        'glow-info': '0 0 10px #3B82F6',
-        'glow-white': '0 0 20px rgba(255,255,255,0.1)',
+        'glow-purple': '0 0 20px rgba(168, 85, 247, 0.3)',
+        'glow-pink': '0 0 20px rgba(236, 72, 153, 0.3)',
+        'glow-green': '0 0 20px rgba(16, 185, 129, 0.3)',
+        'glow-red': '0 0 20px rgba(239, 68, 68, 0.3)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.3)',
+      },
+      backdropBlur: {
+        xs: '2px',
       },
       animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'fade-in': 'fadeIn 0.2s ease-out',
+        'pulse-slow': 'pulse 3s ease-in-out infinite',
+        'float': 'float 6s ease-in-out infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {
-        slideUp: {
-          '0%': { transform: 'translateY(100%)' },
-          '100%': { transform: 'translateY(0)' },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
-        fadeIn: {
-          '0%': { opacity: '0' },
+        glow: {
+          '0%': { opacity: '0.5' },
           '100%': { opacity: '1' },
         },
       },
     },
   },
   plugins: [],
-}
+};

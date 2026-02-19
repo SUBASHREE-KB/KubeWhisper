@@ -1,7 +1,5 @@
 import React from 'react';
-import MemoryIcon from '@mui/icons-material/Memory';
-import StorageIcon from '@mui/icons-material/Storage';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { Cpu, HardDrive, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 function ServiceCard({ service, onClick }) {
@@ -14,19 +12,46 @@ function ServiceCard({ service, onClick }) {
     ?.map(word => word.charAt(0).toUpperCase() + word.slice(1))
     ?.join(' ') || 'Unknown Service';
 
-  // Get status color
-  const getStatusColor = () => {
+  // Get status config
+  const getStatusConfig = () => {
     switch (status) {
       case 'healthy':
-        return 'bg-status-success';
+        return {
+          color: 'cyber-green',
+          bg: 'bg-cyber-green/20',
+          border: 'border-cyber-green/30',
+          icon: CheckCircle,
+          label: 'Healthy'
+        };
       case 'warning':
-        return 'bg-status-warning';
+        return {
+          color: 'cyber-yellow',
+          bg: 'bg-cyber-yellow/20',
+          border: 'border-cyber-yellow/30',
+          icon: AlertTriangle,
+          label: 'Warning'
+        };
       case 'error':
-        return 'bg-status-error';
+        return {
+          color: 'cyber-red',
+          bg: 'bg-cyber-red/20',
+          border: 'border-cyber-red/30',
+          icon: AlertCircle,
+          label: 'Error'
+        };
       default:
-        return 'bg-text-muted';
+        return {
+          color: 'slate-400',
+          bg: 'bg-slate-400/20',
+          border: 'border-slate-400/30',
+          icon: CheckCircle,
+          label: 'Unknown'
+        };
     }
   };
+
+  const statusConfig = getStatusConfig();
+  const StatusIcon = statusConfig.icon;
 
   // Prepare chart data
   const chartData = (history || []).slice(-20).map((h, i) => ({
@@ -38,55 +63,73 @@ function ServiceCard({ service, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="card p-4 cursor-pointer hover-glow group"
+      className="glass-card glass-card-hover p-5 cursor-pointer group transition-all duration-300"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className={`status-dot ${getStatusColor()}`} />
-            <h3 className="font-semibold text-text-primary">{displayName}</h3>
+        <div className="flex-1">
+          <h3 className="font-semibold text-white text-base truncate">{displayName}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <div className={`w-2 h-2 rounded-full ${statusConfig.bg} animate-pulse`} />
+            <span className={`text-xs text-${statusConfig.color}`}>{statusConfig.label}</span>
           </div>
-          <p className="text-xs text-text-muted mt-1 capitalize">{status}</p>
         </div>
 
         {errors > 0 && (
           <div className="badge badge-error">
-            <ErrorOutlineIcon sx={{ fontSize: 12 }} />
-            {errors}
+            <AlertCircle className="w-3 h-3" />
+            <span>{errors}</span>
           </div>
         )}
       </div>
 
-      {/* Metrics */}
+      {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-bg-medium rounded-lg p-2">
-          <div className="flex items-center gap-1 text-text-muted text-xs mb-1">
-            <MemoryIcon sx={{ fontSize: 12 }} />
+        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+          <div className="flex items-center gap-2 text-slate-400 text-xs mb-2">
+            <Cpu className="w-3.5 h-3.5" />
             <span>CPU</span>
           </div>
-          <div className={`text-lg font-semibold ${
-            cpu > 80 ? 'text-status-error' : cpu > 60 ? 'text-status-warning' : 'text-text-primary'
+          <div className={`text-xl font-bold ${
+            cpu > 80 ? 'text-cyber-red' : cpu > 60 ? 'text-cyber-yellow' : 'text-white'
           }`}>
             {cpu?.toFixed(1) || 0}%
           </div>
+          {/* Progress bar */}
+          <div className="h-1 rounded-full bg-white/10 mt-2 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                cpu > 80 ? 'bg-cyber-red' : cpu > 60 ? 'bg-cyber-yellow' : 'bg-electric-500'
+              }`}
+              style={{ width: `${Math.min(cpu || 0, 100)}%` }}
+            />
+          </div>
         </div>
 
-        <div className="bg-bg-medium rounded-lg p-2">
-          <div className="flex items-center gap-1 text-text-muted text-xs mb-1">
-            <StorageIcon sx={{ fontSize: 12 }} />
+        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+          <div className="flex items-center gap-2 text-slate-400 text-xs mb-2">
+            <HardDrive className="w-3.5 h-3.5" />
             <span>Memory</span>
           </div>
-          <div className={`text-lg font-semibold ${
-            memory > 80 ? 'text-status-error' : memory > 60 ? 'text-status-warning' : 'text-text-primary'
+          <div className={`text-xl font-bold ${
+            memory > 80 ? 'text-cyber-red' : memory > 60 ? 'text-cyber-yellow' : 'text-white'
           }`}>
             {memory?.toFixed(1) || 0}%
+          </div>
+          {/* Progress bar */}
+          <div className="h-1 rounded-full bg-white/10 mt-2 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                memory > 80 ? 'bg-cyber-red' : memory > 60 ? 'bg-cyber-yellow' : 'bg-cyber-green'
+              }`}
+              style={{ width: `${Math.min(memory || 0, 100)}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* Mini Chart */}
-      <div className="h-12 bg-bg-medium rounded-lg p-1 overflow-hidden">
+      <div className="h-14 bg-white/5 rounded-xl p-2 overflow-hidden border border-white/5">
         {chartData.length > 1 ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
@@ -100,14 +143,14 @@ function ServiceCard({ service, onClick }) {
               <Line
                 type="monotone"
                 dataKey="memory"
-                stroke="#22C55E"
+                stroke="#10B981"
                 strokeWidth={1.5}
                 dot={false}
               />
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-full text-text-muted text-xs">
+          <div className="flex items-center justify-center h-full text-slate-500 text-xs">
             Collecting data...
           </div>
         )}

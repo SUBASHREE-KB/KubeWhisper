@@ -6,12 +6,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  Legend
+  ResponsiveContainer
 } from 'recharts';
-import MemoryIcon from '@mui/icons-material/Memory';
-import StorageIcon from '@mui/icons-material/Storage';
-import SpeedIcon from '@mui/icons-material/Speed';
+import { Cpu, HardDrive, Activity, Gauge } from 'lucide-react';
 
 function SystemOverview({ metrics, metricsHistory }) {
   // Prepare chart data from metrics history
@@ -68,9 +65,11 @@ function SystemOverview({ metrics, metricsHistory }) {
   // Service colors
   const serviceColors = {
     'api-gateway': '#3B82F6',
-    'user-service': '#22C55E',
-    'db-service': '#EAB308',
-    'default': '#A3A3A3'
+    'user-service': '#10B981',
+    'db-service': '#F59E0B',
+    'auth-service': '#8B5CF6',
+    'order-service': '#EC4899',
+    'default': '#94A3B8'
   };
 
   const getServiceColor = (service) => serviceColors[service] || serviceColors.default;
@@ -88,8 +87,8 @@ function SystemOverview({ metrics, metricsHistory }) {
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="text-text-secondary">{entry.name}:</span>
-              <span className="text-text-primary font-mono">{entry.value?.toFixed(1)}%</span>
+              <span className="text-slate-400">{entry.name}:</span>
+              <span className="text-white font-mono">{entry.value?.toFixed(1)}%</span>
             </div>
           ))}
         </div>
@@ -100,68 +99,69 @@ function SystemOverview({ metrics, metricsHistory }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
       {/* Metrics Summary Cards */}
-      <div className="card p-4">
-        <div className="flex items-center gap-2 text-text-muted text-xs mb-2">
-          <MemoryIcon sx={{ fontSize: 14 }} />
+      <div className="metric-card">
+        <div className="flex items-center gap-2 text-slate-400 text-xs mb-2">
+          <Cpu className="w-3.5 h-3.5" />
           <span>Avg CPU Usage</span>
         </div>
-        <div className={`text-2xl font-semibold ${
-          aggregatedMetrics.avgCpu > 80 ? 'text-status-error' :
-          aggregatedMetrics.avgCpu > 60 ? 'text-status-warning' : 'text-text-primary'
+        <div className={`text-2xl font-bold ${
+          aggregatedMetrics.avgCpu > 80 ? 'text-cyber-red' :
+          aggregatedMetrics.avgCpu > 60 ? 'text-cyber-yellow' : 'text-white'
         }`}>
           {aggregatedMetrics.avgCpu.toFixed(1)}%
         </div>
-        <div className="mt-2 h-1 bg-bg-medium rounded-full overflow-hidden">
+        <div className="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${
-              aggregatedMetrics.avgCpu > 80 ? 'bg-status-error' :
-              aggregatedMetrics.avgCpu > 60 ? 'bg-status-warning' : 'bg-status-success'
+            className={`h-full rounded-full transition-all duration-500 ${
+              aggregatedMetrics.avgCpu > 80 ? 'bg-cyber-red' :
+              aggregatedMetrics.avgCpu > 60 ? 'bg-cyber-yellow' : 'bg-cyber-green'
             }`}
             style={{ width: `${Math.min(aggregatedMetrics.avgCpu, 100)}%` }}
           />
         </div>
       </div>
 
-      <div className="card p-4">
-        <div className="flex items-center gap-2 text-text-muted text-xs mb-2">
-          <StorageIcon sx={{ fontSize: 14 }} />
+      <div className="metric-card">
+        <div className="flex items-center gap-2 text-slate-400 text-xs mb-2">
+          <HardDrive className="w-3.5 h-3.5" />
           <span>Avg Memory Usage</span>
         </div>
-        <div className={`text-2xl font-semibold ${
-          aggregatedMetrics.avgMemory > 80 ? 'text-status-error' :
-          aggregatedMetrics.avgMemory > 60 ? 'text-status-warning' : 'text-text-primary'
+        <div className={`text-2xl font-bold ${
+          aggregatedMetrics.avgMemory > 80 ? 'text-cyber-red' :
+          aggregatedMetrics.avgMemory > 60 ? 'text-cyber-yellow' : 'text-white'
         }`}>
           {aggregatedMetrics.avgMemory.toFixed(1)}%
         </div>
-        <div className="mt-2 h-1 bg-bg-medium rounded-full overflow-hidden">
+        <div className="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${
-              aggregatedMetrics.avgMemory > 80 ? 'bg-status-error' :
-              aggregatedMetrics.avgMemory > 60 ? 'bg-status-warning' : 'bg-status-success'
+            className={`h-full rounded-full transition-all duration-500 ${
+              aggregatedMetrics.avgMemory > 80 ? 'bg-cyber-red' :
+              aggregatedMetrics.avgMemory > 60 ? 'bg-cyber-yellow' : 'bg-cyber-green'
             }`}
             style={{ width: `${Math.min(aggregatedMetrics.avgMemory, 100)}%` }}
           />
         </div>
       </div>
 
-      <div className="card p-4">
-        <div className="flex items-center gap-2 text-text-muted text-xs mb-2">
-          <SpeedIcon sx={{ fontSize: 14 }} />
+      <div className="metric-card">
+        <div className="flex items-center gap-2 text-slate-400 text-xs mb-2">
+          <Activity className="w-3.5 h-3.5" />
           <span>Services Health</span>
         </div>
-        <div className="text-2xl font-semibold text-text-primary">
+        <div className="text-2xl font-bold text-white">
           {aggregatedMetrics.healthyServices}/{aggregatedMetrics.totalServices}
         </div>
-        <div className="text-xs text-text-muted mt-1">
+        <div className="text-xs text-slate-500 mt-1">
           {aggregatedMetrics.healthyServices === aggregatedMetrics.totalServices
             ? 'All services healthy'
-            : `${aggregatedMetrics.totalServices - aggregatedMetrics.healthyServices} service(s) need attention`
+            : `${aggregatedMetrics.totalServices - aggregatedMetrics.healthyServices} need attention`
           }
         </div>
       </div>
 
-      <div className="card p-4">
-        <div className="flex items-center gap-2 text-text-muted text-xs mb-2">
+      <div className="metric-card">
+        <div className="flex items-center gap-2 text-slate-400 text-xs mb-2">
+          <Gauge className="w-3.5 h-3.5" />
           <span>Service Legend</span>
         </div>
         <div className="space-y-2">
@@ -171,7 +171,7 @@ function SystemOverview({ metrics, metricsHistory }) {
                 className="w-3 h-3 rounded-sm"
                 style={{ backgroundColor: getServiceColor(service) }}
               />
-              <span className="text-xs text-text-secondary capitalize">
+              <span className="text-xs text-slate-300 capitalize">
                 {service.replace('-', ' ')}
               </span>
             </div>
@@ -180,7 +180,7 @@ function SystemOverview({ metrics, metricsHistory }) {
       </div>
 
       {/* Chart */}
-      <div className="card p-4 lg:col-span-4">
+      <div className="lg:col-span-4 chart-container">
         <div className="h-64">
           {chartData.length > 1 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -193,18 +193,18 @@ function SystemOverview({ metrics, metricsHistory }) {
                     </linearGradient>
                   ))}
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis
                   dataKey="time"
-                  stroke="#737373"
-                  tick={{ fill: '#737373', fontSize: 10 }}
-                  axisLine={{ stroke: '#262626' }}
+                  stroke="#64748B"
+                  tick={{ fill: '#64748B', fontSize: 10 }}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                 />
                 <YAxis
                   domain={[0, 100]}
-                  stroke="#737373"
-                  tick={{ fill: '#737373', fontSize: 10 }}
-                  axisLine={{ stroke: '#262626' }}
+                  stroke="#64748B"
+                  tick={{ fill: '#64748B', fontSize: 10 }}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                   tickFormatter={(value) => `${value}%`}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -222,7 +222,7 @@ function SystemOverview({ metrics, metricsHistory }) {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-full text-text-muted text-sm">
+            <div className="flex items-center justify-center h-full text-slate-500 text-sm">
               Collecting metrics data...
             </div>
           )}

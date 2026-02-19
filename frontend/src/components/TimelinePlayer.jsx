@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
-import SkipNextIcon from '@mui/icons-material/SkipNext';
-import FastRewindIcon from '@mui/icons-material/FastRewind';
-import FastForwardIcon from '@mui/icons-material/FastForward';
-import RestoreIcon from '@mui/icons-material/Restore';
+import { Play, Pause, SkipBack, SkipForward, Rewind, FastForward, History } from 'lucide-react';
 
 function TimelinePlayer({
   isPlaying,
@@ -66,8 +60,8 @@ function TimelinePlayer({
   return (
     <div className="flex items-center gap-4">
       {/* Time Travel Label */}
-      <div className="flex items-center gap-2 text-text-muted">
-        <RestoreIcon sx={{ fontSize: 16 }} />
+      <div className="flex items-center gap-2 text-slate-400">
+        <History className="w-4 h-4" />
         <span className="text-xs font-medium">Time Travel</span>
       </div>
 
@@ -75,50 +69,50 @@ function TimelinePlayer({
       <div className="flex items-center gap-1">
         <button
           onClick={skipToStart}
-          className="p-1.5 hover:bg-bg-medium rounded transition-colors text-text-secondary hover:text-text-primary"
+          className="p-1.5 hover:bg-white/5 rounded transition-colors text-slate-400 hover:text-white"
           title="Skip to start"
         >
-          <SkipPreviousIcon sx={{ fontSize: 18 }} />
+          <SkipBack className="w-4 h-4" />
         </button>
 
         <button
           onClick={skipBack}
-          className="p-1.5 hover:bg-bg-medium rounded transition-colors text-text-secondary hover:text-text-primary"
+          className="p-1.5 hover:bg-white/5 rounded transition-colors text-slate-400 hover:text-white"
           title="Skip back 10%"
         >
-          <FastRewindIcon sx={{ fontSize: 18 }} />
+          <Rewind className="w-4 h-4" />
         </button>
 
         <button
           onClick={onPlayPause}
           className={`p-2 rounded-lg transition-colors ${
             isPlaying
-              ? 'bg-text-primary text-bg-darkest'
-              : 'bg-bg-medium text-text-primary hover:bg-bg-hover'
+              ? 'bg-electric-500 text-white'
+              : 'bg-white/10 text-white hover:bg-white/20'
           }`}
           title={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
-            <PauseIcon sx={{ fontSize: 20 }} />
+            <Pause className="w-5 h-5" />
           ) : (
-            <PlayArrowIcon sx={{ fontSize: 20 }} />
+            <Play className="w-5 h-5" />
           )}
         </button>
 
         <button
           onClick={skipForward}
-          className="p-1.5 hover:bg-bg-medium rounded transition-colors text-text-secondary hover:text-text-primary"
+          className="p-1.5 hover:bg-white/5 rounded transition-colors text-slate-400 hover:text-white"
           title="Skip forward 10%"
         >
-          <FastForwardIcon sx={{ fontSize: 18 }} />
+          <FastForward className="w-4 h-4" />
         </button>
 
         <button
           onClick={skipToEnd}
-          className="p-1.5 hover:bg-bg-medium rounded transition-colors text-text-secondary hover:text-text-primary"
+          className="p-1.5 hover:bg-white/5 rounded transition-colors text-slate-400 hover:text-white"
           title="Skip to end (live)"
         >
-          <SkipNextIcon sx={{ fontSize: 18 }} />
+          <SkipForward className="w-4 h-4" />
         </button>
       </div>
 
@@ -126,49 +120,49 @@ function TimelinePlayer({
       <div className="flex-1 flex items-center gap-3">
         <div
           ref={trackRef}
-          className="timeline-track flex-1"
+          className="flex-1 h-2 bg-white/10 rounded-full cursor-pointer relative"
           onClick={handleTrackClick}
           onMouseDown={handleMouseDown}
         >
           <div
-            className="timeline-progress"
+            className="h-full bg-gradient-to-r from-electric-500 to-electric-400 rounded-full relative"
             style={{ width: `${position}%` }}
           >
             <div
-              className="timeline-thumb"
-              style={{ left: '100%' }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg cursor-grab active:cursor-grabbing"
+              style={{ transform: 'translate(50%, -50%)' }}
             />
           </div>
         </div>
 
         {/* Position indicator */}
         <div className="flex items-center gap-2 min-w-[120px]">
-          <span className="text-xs font-mono text-text-secondary">
+          <span className="text-xs font-mono text-slate-300">
             {visibleLogs.toLocaleString()}
           </span>
-          <span className="text-xs text-text-muted">/</span>
-          <span className="text-xs font-mono text-text-muted">
+          <span className="text-xs text-slate-500">/</span>
+          <span className="text-xs font-mono text-slate-500">
             {totalLogs.toLocaleString()}
           </span>
-          <span className="text-xs text-text-muted">logs</span>
+          <span className="text-xs text-slate-500">logs</span>
         </div>
       </div>
 
       {/* Live indicator */}
       {position >= 100 && (
-        <div className="flex items-center gap-2 px-3 py-1 bg-status-success/10 border border-status-success/30 rounded-lg">
-          <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" />
-          <span className="text-xs text-status-success font-medium">LIVE</span>
+        <div className="flex items-center gap-2 px-3 py-1 bg-cyber-green/10 border border-cyber-green/30 rounded-lg">
+          <div className="w-2 h-2 bg-cyber-green rounded-full animate-pulse" />
+          <span className="text-xs text-cyber-green font-medium">LIVE</span>
         </div>
       )}
 
       {position < 100 && (
         <button
           onClick={skipToEnd}
-          className="flex items-center gap-2 px-3 py-1 bg-bg-medium hover:bg-bg-hover border border-border-light rounded-lg transition-colors"
+          className="flex items-center gap-2 px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors"
         >
-          <span className="text-xs text-text-secondary">Go to</span>
-          <span className="text-xs text-text-primary font-medium">LIVE</span>
+          <span className="text-xs text-slate-400">Go to</span>
+          <span className="text-xs text-white font-medium">LIVE</span>
         </button>
       )}
     </div>

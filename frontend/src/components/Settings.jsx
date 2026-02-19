@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import SettingsIcon from '@mui/icons-material/Settings';
-import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import StorageIcon from '@mui/icons-material/Storage';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import CircularProgress from '@mui/material/CircularProgress';
+import { Settings as SettingsIcon, X, Plus, Trash2, RefreshCw, Server, CheckCircle, AlertCircle } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -151,20 +143,20 @@ function Settings({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-bg-dark border border-border-dark rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="glass-card w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-dark">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-bg-medium rounded-lg">
-              <SettingsIcon sx={{ fontSize: 20, color: '#FAFAFA' }} />
+            <div className="w-10 h-10 rounded-xl bg-electric-500/20 flex items-center justify-center">
+              <SettingsIcon className="w-5 h-5 text-electric-400" />
             </div>
-            <h2 className="text-xl font-semibold text-text-primary">Service Configuration</h2>
+            <h2 className="text-xl font-semibold text-white">Service Configuration</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-bg-medium rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+            className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
           >
-            <CloseIcon sx={{ fontSize: 20 }} />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -172,22 +164,22 @@ function Settings({ isOpen, onClose }) {
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {/* Notifications */}
           {error && (
-            <div className="mb-4 p-3 bg-status-error/10 border border-status-error/30 rounded-lg flex items-center gap-2">
-              <ErrorOutlineIcon sx={{ fontSize: 16, color: '#EF4444' }} />
-              <span className="text-status-error text-sm">{error}</span>
+            <div className="mb-4 p-3 bg-cyber-red/10 border border-cyber-red/30 rounded-xl flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-cyber-red" />
+              <span className="text-cyber-red text-sm">{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-status-success/10 border border-status-success/30 rounded-lg flex items-center gap-2">
-              <CheckCircleIcon sx={{ fontSize: 16, color: '#22C55E' }} />
-              <span className="text-status-success text-sm">{success}</span>
+            <div className="mb-4 p-3 bg-cyber-green/10 border border-cyber-green/30 rounded-xl flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-cyber-green" />
+              <span className="text-cyber-green text-sm">{success}</span>
             </div>
           )}
 
           {/* Discovery Mode */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-text-primary mb-3">
+            <label className="block text-sm font-medium text-white mb-3">
               Discovery Mode
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -195,17 +187,17 @@ function Settings({ isOpen, onClose }) {
                 <button
                   key={m}
                   onClick={() => setMode(m)}
-                  className={`px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                  className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                     mode === m
-                      ? 'bg-text-primary text-bg-darkest border-text-primary'
-                      : 'bg-bg-medium border-border-light text-text-secondary hover:border-text-muted hover:text-text-primary'
+                      ? 'bg-electric-500 text-white border-electric-500'
+                      : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20 hover:text-white'
                   }`}
                 >
                   {m.charAt(0).toUpperCase() + m.slice(1)}
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-text-muted">
+            <p className="mt-2 text-xs text-slate-500">
               {mode === 'auto' && 'Automatically discover all running containers'}
               {mode === 'manual' && 'Manually specify container names to monitor'}
               {mode === 'pattern' && 'Use regex patterns to match container names'}
@@ -215,7 +207,7 @@ function Settings({ isOpen, onClose }) {
           {/* Manual Services */}
           {mode === 'manual' && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-text-primary mb-3">
+              <label className="block text-sm font-medium text-white mb-3">
                 Container Names
               </label>
               <div className="flex gap-2 mb-3">
@@ -224,14 +216,14 @@ function Settings({ isOpen, onClose }) {
                   value={newService}
                   onChange={(e) => setNewService(e.target.value)}
                   placeholder="Enter container name..."
-                  className="input flex-1"
+                  className="input-glass flex-1"
                   onKeyDown={(e) => e.key === 'Enter' && addService()}
                 />
                 <button
                   onClick={addService}
-                  className="btn btn-primary flex items-center gap-2"
+                  className="btn-primary flex items-center gap-2"
                 >
-                  <AddIcon sx={{ fontSize: 18 }} />
+                  <Plus className="w-4 h-4" />
                   Add
                 </button>
               </div>
@@ -239,17 +231,17 @@ function Settings({ isOpen, onClose }) {
                 {manualServices.map((service, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between px-3 py-2 bg-bg-medium rounded-lg border border-border-dark"
+                    className="flex items-center justify-between px-3 py-2 bg-white/5 rounded-xl border border-white/10"
                   >
                     <div className="flex items-center gap-2">
-                      <StorageIcon sx={{ fontSize: 16, color: '#A3A3A3' }} />
-                      <span className="text-sm text-text-primary font-mono">{service}</span>
+                      <Server className="w-4 h-4 text-slate-400" />
+                      <span className="text-sm text-white font-mono">{service}</span>
                     </div>
                     <button
                       onClick={() => removeService(service)}
-                      className="p-1.5 hover:bg-bg-hover rounded text-text-muted hover:text-status-error transition-colors"
+                      className="p-1.5 hover:bg-white/10 rounded text-slate-500 hover:text-cyber-red transition-colors"
                     >
-                      <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
@@ -260,7 +252,7 @@ function Settings({ isOpen, onClose }) {
           {/* Patterns */}
           {mode === 'pattern' && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-text-primary mb-3">
+              <label className="block text-sm font-medium text-white mb-3">
                 Container Patterns (Regex)
               </label>
               <div className="flex gap-2 mb-3">
@@ -269,14 +261,14 @@ function Settings({ isOpen, onClose }) {
                   value={newPattern}
                   onChange={(e) => setNewPattern(e.target.value)}
                   placeholder="e.g., my-app-.*"
-                  className="input flex-1 font-mono"
+                  className="input-glass flex-1 font-mono"
                   onKeyDown={(e) => e.key === 'Enter' && addPattern()}
                 />
                 <button
                   onClick={addPattern}
-                  className="btn btn-primary flex items-center gap-2"
+                  className="btn-primary flex items-center gap-2"
                 >
-                  <AddIcon sx={{ fontSize: 18 }} />
+                  <Plus className="w-4 h-4" />
                   Add
                 </button>
               </div>
@@ -284,14 +276,14 @@ function Settings({ isOpen, onClose }) {
                 {patterns.map((pattern, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between px-3 py-2 bg-bg-medium rounded-lg border border-border-dark"
+                    className="flex items-center justify-between px-3 py-2 bg-white/5 rounded-xl border border-white/10"
                   >
-                    <code className="text-sm text-status-success font-mono">{pattern}</code>
+                    <code className="text-sm text-cyber-green font-mono">{pattern}</code>
                     <button
                       onClick={() => removePattern(index)}
-                      className="p-1.5 hover:bg-bg-hover rounded text-text-muted hover:text-status-error transition-colors"
+                      className="p-1.5 hover:bg-white/10 rounded text-slate-500 hover:text-cyber-red transition-colors"
                     >
-                      <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
@@ -302,26 +294,22 @@ function Settings({ isOpen, onClose }) {
           {/* Discovered Services */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-medium text-text-primary">
+              <label className="block text-sm font-medium text-white">
                 Discovered Services ({discoveredServices.length})
               </label>
               <button
                 onClick={triggerDiscovery}
                 disabled={discovering}
-                className="btn btn-ghost text-sm flex items-center gap-2"
+                className="btn-glass text-sm flex items-center gap-2 py-1.5"
               >
-                {discovering ? (
-                  <CircularProgress size={14} sx={{ color: '#FAFAFA' }} />
-                ) : (
-                  <RefreshIcon sx={{ fontSize: 16 }} />
-                )}
+                <RefreshCw className={`w-4 h-4 ${discovering ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
             </div>
-            <div className="bg-bg-medium rounded-lg p-4 max-h-48 overflow-y-auto border border-border-dark">
+            <div className="bg-white/5 rounded-xl p-4 max-h-48 overflow-y-auto border border-white/10">
               {loading ? (
                 <div className="flex items-center justify-center py-4">
-                  <CircularProgress size={24} sx={{ color: '#FAFAFA' }} />
+                  <div className="spinner" />
                 </div>
               ) : discoveredServices.length > 0 ? (
                 <div className="space-y-2">
@@ -330,16 +318,16 @@ function Settings({ isOpen, onClose }) {
                       key={index}
                       className="flex items-center gap-2 text-sm"
                     >
-                      <div className="w-2 h-2 bg-status-success rounded-full" />
-                      <span className="text-text-primary font-mono">{service.name}</span>
+                      <div className="w-2 h-2 bg-cyber-green rounded-full" />
+                      <span className="text-white font-mono">{service.name}</span>
                       {service.image && (
-                        <span className="text-text-muted text-xs">({service.image})</span>
+                        <span className="text-slate-500 text-xs">({service.image})</span>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-text-muted text-sm text-center py-4">
+                <p className="text-slate-500 text-sm text-center py-4">
                   No services discovered. Make sure Docker containers are running.
                 </p>
               )}
@@ -347,33 +335,33 @@ function Settings({ isOpen, onClose }) {
           </div>
 
           {/* Instructions */}
-          <div className="bg-status-info/5 border border-status-info/30 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-status-info mb-2">How to Connect Your Services</h3>
-            <ol className="text-xs text-text-muted space-y-1 list-decimal list-inside">
+          <div className="bg-electric-500/10 border border-electric-500/30 rounded-xl p-4">
+            <h3 className="text-sm font-medium text-electric-400 mb-2">How to Connect Your Services</h3>
+            <ol className="text-xs text-slate-400 space-y-1 list-decimal list-inside">
               <li>Start your Docker containers</li>
               <li>Choose a discovery mode above</li>
-              <li>For <span className="text-text-primary">Auto</span>: All running containers will be monitored</li>
-              <li>For <span className="text-text-primary">Manual</span>: Enter your container names exactly</li>
-              <li>For <span className="text-text-primary">Pattern</span>: Use regex patterns like <code className="text-status-success">myapp-.*</code></li>
+              <li>For <span className="text-white">Auto</span>: All running containers will be monitored</li>
+              <li>For <span className="text-white">Manual</span>: Enter your container names exactly</li>
+              <li>For <span className="text-white">Pattern</span>: Use regex patterns like <code className="text-cyber-green">myapp-.*</code></li>
               <li>Click "Save Configuration" to apply changes</li>
             </ol>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-dark">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10">
           <button
             onClick={onClose}
-            className="btn btn-secondary"
+            className="btn-glass"
           >
             Cancel
           </button>
           <button
             onClick={saveConfig}
             disabled={loading}
-            className="btn btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-2"
           >
-            {loading && <CircularProgress size={16} sx={{ color: '#0A0A0A' }} />}
+            {loading && <div className="spinner w-4 h-4" />}
             Save Configuration
           </button>
         </div>

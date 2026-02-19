@@ -1,24 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import SettingsIcon from '@mui/icons-material/Settings';
-import WifiIcon from '@mui/icons-material/Wifi';
-import WifiOffIcon from '@mui/icons-material/WifiOff';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import SearchIcon from '@mui/icons-material/Search';
-import DownloadIcon from '@mui/icons-material/Download';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
-import SkipNextIcon from '@mui/icons-material/SkipNext';
-import FastRewindIcon from '@mui/icons-material/FastRewind';
-import FastForwardIcon from '@mui/icons-material/FastForward';
+import {
+  FileText,
+  Filter,
+  Search,
+  Download,
+  Trash2,
+  Info,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  Play,
+  Pause
+} from 'lucide-react';
 
 import LogStream from '../components/LogStream';
 import LogFilters from '../components/LogFilters';
@@ -44,6 +38,7 @@ function LogsView({
   const [searchQuery, setSearchQuery] = useState('');
   const [isPlaying, setIsPlaying] = useState(true);
   const [timelinePosition, setTimelinePosition] = useState(100);
+  const [showFilters, setShowFilters] = useState(true);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -99,12 +94,12 @@ function LogsView({
     return { total, info, warn, error };
   }, [logs]);
 
-  // Show error panel when analysis completes
+  // Show error panel when analysis starts or completes
   useEffect(() => {
-    if (currentAnalysis) {
+    if (currentAnalysis || isAnalyzing) {
       setShowErrorPanel(true);
     }
-  }, [currentAnalysis]);
+  }, [currentAnalysis, isAnalyzing]);
 
   // Handle error click
   const handleErrorClick = (errorLog) => {
@@ -134,90 +129,71 @@ function LogsView({
   };
 
   return (
-    <div className="min-h-screen bg-bg-darkest text-text-primary">
-      {/* Header */}
-      <header className="bg-bg-dark border-b border-border-dark sticky top-0 z-40">
-        <div className="max-w-full mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Back button and logo */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
-              >
-                <ArrowBackIcon sx={{ fontSize: 20 }} />
-                <span className="text-sm">Back to Dashboard</span>
-              </button>
-
-              <div className="w-px h-6 bg-border-dark" />
-
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-bg-medium border border-border-light rounded-lg flex items-center justify-center">
-                  <DashboardIcon sx={{ fontSize: 18, color: '#FAFAFA' }} />
-                </div>
-                <span className="text-lg font-semibold">KubeWhisper</span>
-              </div>
+    <div className="h-full flex flex-col animate-fade-in -m-6">
+      {/* Page Header */}
+      <div className="p-6 border-b border-white/5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-electric-500/20 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-electric-400" />
             </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowSettings(true)}
-                className="p-2 bg-bg-medium hover:bg-bg-hover rounded-lg text-text-secondary hover:text-text-primary transition-all"
-              >
-                <SettingsIcon sx={{ fontSize: 20 }} />
-              </button>
-
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
-                connected
-                  ? 'bg-status-success/10 border border-status-success/30'
-                  : 'bg-status-error/10 border border-status-error/30'
-              }`}>
-                {connected ? (
-                  <>
-                    <WifiIcon sx={{ fontSize: 16, color: '#22C55E' }} />
-                    <span className="text-sm text-status-success">Connected</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOffIcon sx={{ fontSize: 16, color: '#EF4444' }} />
-                    <span className="text-sm text-status-error">Disconnected</span>
-                  </>
-                )}
-              </div>
+            <div>
+              <h1 className="text-xl font-semibold text-white">Log Viewer</h1>
+              <p className="text-sm text-slate-400">Real-time log streaming with time travel</p>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Timeline Player */}
-      <div className="bg-bg-dark border-b border-border-dark px-6 py-3">
-        <TimelinePlayer
-          isPlaying={isPlaying}
-          position={timelinePosition}
-          onPlayPause={() => setIsPlaying(!isPlaying)}
-          onSeek={setTimelinePosition}
-          totalLogs={logs.length}
-        />
+          <div className="flex items-center gap-3">
+            {/* Play/Pause */}
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className={`p-2 rounded-lg transition-colors ${
+                isPlaying
+                  ? 'bg-cyber-green/20 text-cyber-green'
+                  : 'bg-cyber-yellow/20 text-cyber-yellow'
+              }`}
+            >
+              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+            </button>
+
+            {/* Toggle Filters */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-glass flex items-center gap-2 ${showFilters ? 'border-electric-500/50' : ''}`}
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Timeline Player */}
+        <div className="mt-4">
+          <TimelinePlayer
+            isPlaying={isPlaying}
+            position={timelinePosition}
+            onPlayPause={() => setIsPlaying(!isPlaying)}
+            onSeek={setTimelinePosition}
+            totalLogs={logs.length}
+          />
+        </div>
       </div>
 
       {/* Main content */}
-      <main className="flex" style={{ height: 'calc(100vh - 140px)', paddingBottom: showErrorPanel ? '40vh' : 0 }}>
-        {/* Logs section - 70% */}
-        <div className="flex-1 flex flex-col border-r border-border-dark">
+      <div className="flex-1 flex overflow-hidden">
+        {/* Logs section */}
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Search bar */}
-          <div className="p-4 border-b border-border-dark">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 relative">
-                <SearchIcon sx={{ fontSize: 18 }} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-                <input
-                  type="text"
-                  placeholder="Search logs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input w-full pl-10"
-                />
-              </div>
+          <div className="p-4 border-b border-white/5">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Search logs by message or service..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input-glass w-full pl-10 pr-4 py-2.5"
+              />
             </div>
           </div>
 
@@ -231,68 +207,70 @@ function LogsView({
           </div>
         </div>
 
-        {/* Filters sidebar - 30% */}
-        <div className="w-80 flex flex-col bg-bg-dark">
-          <div className="p-4 border-b border-border-dark">
-            <div className="flex items-center gap-2 text-text-primary">
-              <FilterListIcon sx={{ fontSize: 18 }} />
-              <span className="font-semibold">Filters</span>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            <LogFilters
-              filters={filters}
-              onChange={setFilters}
-              availableServices={availableServices}
-            />
-          </div>
-
-          {/* Statistics */}
-          <div className="p-4 border-t border-border-dark">
-            <div className="text-sm font-medium text-text-primary mb-3">Statistics</div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-text-muted">Total</span>
-                <span className="text-text-primary font-mono">{stats.total.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircleOutlineIcon sx={{ fontSize: 14, color: '#A3A3A3' }} />
-                  <span className="text-text-muted">Info</span>
-                </div>
-                <span className="text-text-secondary font-mono">{stats.info.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <WarningAmberIcon sx={{ fontSize: 14, color: '#EAB308' }} />
-                  <span className="text-text-muted">Warn</span>
-                </div>
-                <span className="text-status-warning font-mono">{stats.warn.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <ErrorOutlineIcon sx={{ fontSize: 14, color: '#EF4444' }} />
-                  <span className="text-text-muted">Error</span>
-                </div>
-                <span className="text-status-error font-mono">{stats.error.toLocaleString()}</span>
+        {/* Filters sidebar */}
+        {showFilters && (
+          <div className="w-80 flex flex-col border-l border-white/5 bg-navy-900/30">
+            <div className="p-4 border-b border-white/5">
+              <div className="flex items-center gap-2 text-white">
+                <Filter className="w-4 h-4" />
+                <span className="font-semibold">Filters</span>
               </div>
             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="p-4 border-t border-border-dark flex gap-2">
-            <button onClick={handleExport} className="btn btn-secondary flex-1">
-              <DownloadIcon sx={{ fontSize: 16 }} />
-              Export
-            </button>
-            <button className="btn btn-secondary flex-1">
-              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-              Clear
-            </button>
+            <div className="flex-1 overflow-y-auto">
+              <LogFilters
+                filters={filters}
+                onChange={setFilters}
+                availableServices={availableServices}
+              />
+            </div>
+
+            {/* Statistics */}
+            <div className="p-4 border-t border-white/5">
+              <div className="text-sm font-medium text-white mb-3">Statistics</div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-400">Total</span>
+                  <span className="text-white font-mono">{stats.total.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-slate-400">Info</span>
+                  </div>
+                  <span className="text-slate-300 font-mono">{stats.info.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 text-cyber-yellow" />
+                    <span className="text-slate-400">Warn</span>
+                  </div>
+                  <span className="text-cyber-yellow font-mono">{stats.warn.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-3.5 h-3.5 text-cyber-red" />
+                    <span className="text-slate-400">Error</span>
+                  </div>
+                  <span className="text-cyber-red font-mono">{stats.error.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-4 border-t border-white/5 flex gap-2">
+              <button onClick={handleExport} className="btn-glass flex-1 flex items-center justify-center gap-2">
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+              <button className="btn-glass flex-1 flex items-center justify-center gap-2">
+                <Trash2 className="w-4 h-4" />
+                Clear
+              </button>
+            </div>
           </div>
-        </div>
-      </main>
+        )}
+      </div>
 
       {/* Error Panel */}
       {showErrorPanel && (

@@ -1,19 +1,14 @@
 import React from 'react';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import BugReportIcon from '@mui/icons-material/BugReport';
+import { Info, AlertTriangle, AlertCircle, Bug, Check } from 'lucide-react';
 
 function LogFilters({ filters, onChange, availableServices }) {
   // Log levels configuration
   const logLevels = [
-    { value: 'INFO', label: 'Info', icon: <InfoOutlinedIcon sx={{ fontSize: 14 }} />, color: 'text-text-muted' },
-    { value: 'WARN', label: 'Warning', icon: <WarningAmberIcon sx={{ fontSize: 14 }} />, color: 'text-status-warning' },
-    { value: 'ERROR', label: 'Error', icon: <ErrorOutlineIcon sx={{ fontSize: 14 }} />, color: 'text-status-error' },
-    { value: 'CRITICAL', label: 'Critical', icon: <BugReportIcon sx={{ fontSize: 14 }} />, color: 'text-status-error' },
-    { value: 'DEBUG', label: 'Debug', icon: <InfoOutlinedIcon sx={{ fontSize: 14 }} />, color: 'text-text-muted' }
+    { value: 'INFO', label: 'Info', Icon: Info, color: 'text-slate-400' },
+    { value: 'WARN', label: 'Warning', Icon: AlertTriangle, color: 'text-cyber-yellow' },
+    { value: 'ERROR', label: 'Error', Icon: AlertCircle, color: 'text-cyber-red' },
+    { value: 'CRITICAL', label: 'Critical', Icon: Bug, color: 'text-cyber-red' },
+    { value: 'DEBUG', label: 'Debug', Icon: Info, color: 'text-slate-500' }
   ];
 
   // Time range options
@@ -73,10 +68,10 @@ function LogFilters({ filters, onChange, availableServices }) {
       {/* Services Filter */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-text-primary">Services</span>
+          <span className="text-sm font-medium text-white">Services</span>
           <button
             onClick={selectAllServices}
-            className="text-xs text-text-muted hover:text-text-primary transition-colors"
+            className="text-xs text-slate-500 hover:text-white transition-colors"
           >
             {filters.services.length === 0 ? 'All selected' : 'Select all'}
           </button>
@@ -87,28 +82,24 @@ function LogFilters({ filters, onChange, availableServices }) {
             return (
               <label
                 key={service}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-medium cursor-pointer transition-colors"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
               >
                 <div
                   className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                     isSelected
-                      ? 'bg-text-primary border-text-primary'
-                      : 'border-border-light bg-transparent'
+                      ? 'bg-electric-500 border-electric-500'
+                      : 'border-white/20 bg-transparent'
                   }`}
                   onClick={() => toggleService(service)}
                 >
-                  {isSelected && (
-                    <svg className="w-3 h-3 text-bg-darkest" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
+                  {isSelected && <Check className="w-3 h-3 text-white" />}
                 </div>
-                <span className="text-sm text-text-secondary">{formatService(service)}</span>
+                <span className="text-sm text-slate-300">{formatService(service)}</span>
               </label>
             );
           })}
           {availableServices.length === 0 && (
-            <p className="text-xs text-text-muted text-center py-2">No services detected</p>
+            <p className="text-xs text-slate-500 text-center py-2">No services detected</p>
           )}
         </div>
       </div>
@@ -116,18 +107,18 @@ function LogFilters({ filters, onChange, availableServices }) {
       {/* Log Levels Filter */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-text-primary">Log Levels</span>
+          <span className="text-sm font-medium text-white">Log Levels</span>
           <div className="flex gap-2">
             <button
               onClick={selectAllLevels}
-              className="text-xs text-text-muted hover:text-text-primary transition-colors"
+              className="text-xs text-slate-500 hover:text-white transition-colors"
             >
               All
             </button>
-            <span className="text-text-muted">|</span>
+            <span className="text-slate-600">|</span>
             <button
               onClick={clearAllLevels}
-              className="text-xs text-text-muted hover:text-text-primary transition-colors"
+              className="text-xs text-slate-500 hover:text-white transition-colors"
             >
               None
             </button>
@@ -136,27 +127,24 @@ function LogFilters({ filters, onChange, availableServices }) {
         <div className="space-y-2">
           {logLevels.map((level) => {
             const isSelected = filters.levels.includes(level.value);
+            const Icon = level.Icon;
             return (
               <label
                 key={level.value}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-medium cursor-pointer transition-colors"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
               >
                 <div
                   className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                     isSelected
-                      ? 'bg-text-primary border-text-primary'
-                      : 'border-border-light bg-transparent'
+                      ? 'bg-electric-500 border-electric-500'
+                      : 'border-white/20 bg-transparent'
                   }`}
                   onClick={() => toggleLevel(level.value)}
                 >
-                  {isSelected && (
-                    <svg className="w-3 h-3 text-bg-darkest" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
+                  {isSelected && <Check className="w-3 h-3 text-white" />}
                 </div>
                 <div className={`flex items-center gap-2 ${level.color}`}>
-                  {level.icon}
+                  <Icon className="w-3.5 h-3.5" />
                   <span className="text-sm">{level.label}</span>
                 </div>
               </label>
@@ -167,11 +155,11 @@ function LogFilters({ filters, onChange, availableServices }) {
 
       {/* Time Range Filter */}
       <div>
-        <span className="text-sm font-medium text-text-primary block mb-3">Time Range</span>
+        <span className="text-sm font-medium text-white block mb-3">Time Range</span>
         <select
           value={filters.timeRange}
           onChange={(e) => setTimeRange(e.target.value)}
-          className="select w-full"
+          className="input-glass w-full py-2.5"
         >
           {timeRanges.map((range) => (
             <option key={range.value} value={range.value}>
@@ -188,7 +176,7 @@ function LogFilters({ filters, onChange, availableServices }) {
           levels: ['WARN', 'ERROR', 'CRITICAL'],
           timeRange: 'all'
         })}
-        className="btn btn-ghost w-full text-sm"
+        className="btn-glass w-full text-sm"
       >
         Reset Filters
       </button>

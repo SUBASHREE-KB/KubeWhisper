@@ -120,7 +120,17 @@ export function useSocket() {
       setNotification({
         type: 'error',
         title: 'Analysis Failed',
-        message: error
+        message: error || 'Unknown error occurred during analysis'
+      });
+    });
+
+    // Handle targeted fix events
+    socketInstance.on('targeted-fix-generated', (fix) => {
+      console.log('[Socket] Targeted fix generated', fix);
+      setNotification({
+        type: 'success',
+        title: 'Smart Fix Ready',
+        message: `Fix generated for ${fix.fileName || 'source file'}`
       });
     });
 
@@ -206,7 +216,7 @@ export function useSocket() {
   }, [socket]);
 
   const triggerAnalysis = useCallback((errorId = null) => {
-    if (socket) {
+    if (socket && socket.connected) {
       console.log('[Socket] Emitting trigger-analysis', errorId);
       setIsAnalyzing(true); // Set immediately for UI feedback
       setGeneratedFix(null); // Clear previous fix
@@ -214,6 +224,11 @@ export function useSocket() {
       socket.emit('trigger-analysis', errorId);
     } else {
       console.error('[Socket] No socket connection for trigger-analysis');
+      setNotification({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Not connected to server. Please check if backend is running.'
+      });
     }
   }, [socket]);
 
