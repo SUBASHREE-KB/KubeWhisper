@@ -20,11 +20,6 @@ function InsightsPage({ metrics, metricsHistory, logs }) {
           </h1>
           <p className="text-slate-400 mt-1">Predictive analytics and intelligent recommendations</p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-cyber-purple" />
-          <span className="text-sm text-slate-400">Powered by AI</span>
-        </div>
       </div>
 
       {/* Health Score */}

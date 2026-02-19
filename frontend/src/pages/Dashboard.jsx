@@ -83,57 +83,96 @@ function Dashboard({
       {/* Metrics Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Services */}
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-electric-500/20 flex items-center justify-center">
-              <Activity className="w-5 h-5 text-electric-400" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-purple-500">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center ring-1 ring-purple-500/30">
+                <Activity className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Active Services</p>
+                <span className="text-xs text-purple-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                  Live
+                </span>
+              </div>
             </div>
-            <span className="badge badge-info">Live</span>
+            <p className="text-3xl font-bold text-white">{services.length}</p>
           </div>
-          <p className="text-2xl font-bold text-white">{services.length}</p>
-          <p className="text-sm text-slate-400 mt-1">Active Services</p>
         </div>
 
         {/* Average CPU */}
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-cyber-green/20 flex items-center justify-center">
-              <Cpu className="w-5 h-5 text-cyber-green" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyber-green">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyber-green/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyber-green/20 flex items-center justify-center ring-1 ring-cyber-green/30">
+                <Cpu className="w-5 h-5 text-cyber-green" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Avg CPU Usage</p>
+                <span className="text-xs text-cyber-green flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Normal
+                </span>
+              </div>
             </div>
-            <TrendingUp className="w-4 h-4 text-cyber-green" />
+            <p className="text-3xl font-bold text-white">{avgCpu}<span className="text-lg text-slate-400">%</span></p>
           </div>
-          <p className="text-2xl font-bold text-white">{avgCpu}%</p>
-          <p className="text-sm text-slate-400 mt-1">Avg CPU Usage</p>
         </div>
 
         {/* Average Memory */}
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-cyber-purple/20 flex items-center justify-center">
-              <HardDrive className="w-5 h-5 text-cyber-purple" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyan-500">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center ring-1 ring-cyan-500/30">
+                <HardDrive className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Avg Memory</p>
+                <span className="text-xs text-cyan-400 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Stable
+                </span>
+              </div>
             </div>
-            <TrendingUp className="w-4 h-4 text-cyber-purple" />
+            <p className="text-3xl font-bold text-white">{avgMemory}<span className="text-lg text-slate-400">%</span></p>
           </div>
-          <p className="text-2xl font-bold text-white">{avgMemory}%</p>
-          <p className="text-sm text-slate-400 mt-1">Avg Memory Usage</p>
         </div>
 
         {/* Error Count */}
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-4">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              totalErrors > 0 ? 'bg-cyber-red/20' : 'bg-cyber-green/20'
-            }`}>
-              <AlertTriangle className={`w-5 h-5 ${
-                totalErrors > 0 ? 'text-cyber-red' : 'text-cyber-green'
-              }`} />
+        <div className={`metric-card group relative overflow-hidden border-l-4 ${totalErrors > 0 ? 'border-cyber-red' : 'border-cyber-green'}`}>
+          <div className={`absolute inset-0 bg-gradient-to-br ${totalErrors > 0 ? 'from-cyber-red/10' : 'from-cyber-green/10'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ring-1 ${
+                totalErrors > 0
+                  ? 'bg-cyber-red/20 ring-cyber-red/30'
+                  : 'bg-cyber-green/20 ring-cyber-green/30'
+              }`}>
+                <AlertTriangle className={`w-5 h-5 ${totalErrors > 0 ? 'text-cyber-red' : 'text-cyber-green'}`} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Total Errors</p>
+                <span className={`text-xs flex items-center gap-1 ${totalErrors > 0 ? 'text-cyber-red' : 'text-cyber-green'}`}>
+                  {totalErrors > 0 ? (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyber-red animate-pulse" />
+                      Attention
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyber-green" />
+                      All Clear
+                    </>
+                  )}
+                </span>
+              </div>
             </div>
-            {totalErrors > 0 && (
-              <span className="badge badge-error">{totalErrors}</span>
-            )}
+            <p className="text-3xl font-bold text-white">{totalErrors}</p>
           </div>
-          <p className="text-2xl font-bold text-white">{totalErrors}</p>
-          <p className="text-sm text-slate-400 mt-1">Total Errors</p>
         </div>
       </div>
 
