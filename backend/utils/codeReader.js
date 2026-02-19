@@ -109,20 +109,29 @@ function mapServiceName(logServiceName) {
 
   const normalized = logServiceName.toUpperCase().trim();
 
+  // Known service mappings
   const mapping = {
     'API-GATEWAY': 'api-gateway',
     'USER-SERVICE': 'user-service',
     'DB-SERVICE': 'db-service',
+    'AUTH-SERVICE': 'auth-service',
+    'ORDER-SERVICE': 'order-service',
     'APIGATEWAY': 'api-gateway',
     'USERSERVICE': 'user-service',
     'DBSERVICE': 'db-service',
+    'AUTHSERVICE': 'auth-service',
+    'ORDERSERVICE': 'order-service',
     'API_GATEWAY': 'api-gateway',
     'USER_SERVICE': 'user-service',
     'DB_SERVICE': 'db-service',
+    'AUTH_SERVICE': 'auth-service',
+    'ORDER_SERVICE': 'order-service',
     'UNKNOWN': 'user-service',  // Default to user-service if unknown
     'KUBEWHISPER-API-GATEWAY': 'api-gateway',
     'KUBEWHISPER-USER-SERVICE': 'user-service',
-    'KUBEWHISPER-DB-SERVICE': 'db-service'
+    'KUBEWHISPER-DB-SERVICE': 'db-service',
+    'KUBEWHISPER-AUTH-SERVICE': 'auth-service',
+    'KUBEWHISPER-ORDER-SERVICE': 'order-service'
   };
 
   // Direct mapping match
@@ -137,8 +146,14 @@ function mapServiceName(logServiceName) {
     }
   }
 
-  // Fallback: convert to lowercase and use
-  return logServiceName.toLowerCase().replace(/_/g, '-');
+  // Dynamic fallback: convert to lowercase kebab-case
+  // Remove common prefixes like KUBEWHISPER-
+  let result = logServiceName.toLowerCase()
+    .replace(/^kubewhisper-/, '')
+    .replace(/_/g, '-')
+    .replace(/\s+/g, '-');
+
+  return result;
 }
 
 module.exports = {

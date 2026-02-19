@@ -292,16 +292,16 @@ app.get('/api/logs', (req, res) => {
   res.json(logs);
 });
 
+// Get error logs only (MUST be before :service route to avoid matching "errors" as a service name)
+app.get('/api/logs/errors', (req, res) => {
+  const errors = logCollector.getErrorLogs();
+  res.json(errors);
+});
+
 // Get logs by service
 app.get('/api/logs/:service', (req, res) => {
   const logs = logCollector.getLogsByService(req.params.service);
   res.json(logs);
-});
-
-// Get error logs only
-app.get('/api/logs/errors', (req, res) => {
-  const errors = logCollector.getErrorLogs();
-  res.json(errors);
 });
 
 // Get current metrics

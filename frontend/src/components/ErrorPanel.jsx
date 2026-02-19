@@ -380,13 +380,34 @@ function ErrorPanel({
               <div className="space-y-4">
                 {/* Targeted Fix Error */}
                 {targetedFixError && (
-                  <div className="card p-4 border-status-error/30">
-                    <div className="flex items-center gap-2 text-status-error mb-2">
-                      <WarningAmberIcon sx={{ fontSize: 16 }} />
-                      <span className="font-medium">Could not generate smart fix</span>
+                  <div className={`card p-4 ${
+                    targetedFixError.includes('already fixed') || targetedFixError.includes('already been fixed')
+                      ? 'border-status-warning/30'
+                      : 'border-status-error/30'
+                  }`}>
+                    <div className={`flex items-center gap-2 mb-2 ${
+                      targetedFixError.includes('already fixed') || targetedFixError.includes('already been fixed')
+                        ? 'text-status-warning'
+                        : 'text-status-error'
+                    }`}>
+                      {targetedFixError.includes('already fixed') || targetedFixError.includes('already been fixed') ? (
+                        <CheckCircleIcon sx={{ fontSize: 16 }} />
+                      ) : (
+                        <WarningAmberIcon sx={{ fontSize: 16 }} />
+                      )}
+                      <span className="font-medium">
+                        {targetedFixError.includes('already fixed') || targetedFixError.includes('already been fixed')
+                          ? 'This error type has already been fixed'
+                          : 'Could not generate smart fix'
+                        }
+                      </span>
                     </div>
                     <p className="text-text-muted text-sm">{targetedFixError}</p>
-                    <p className="text-text-muted text-xs mt-2">Try using the "Template Fix" button instead.</p>
+                    {targetedFixError.includes('already fixed') || targetedFixError.includes('already been fixed') ? (
+                      <p className="text-text-muted text-xs mt-2">The fix was applied earlier. Try rebuilding the container if the error persists.</p>
+                    ) : (
+                      <p className="text-text-muted text-xs mt-2">Try using the "Template Fix" button instead.</p>
+                    )}
                   </div>
                 )}
 

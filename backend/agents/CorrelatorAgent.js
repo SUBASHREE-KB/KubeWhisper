@@ -111,6 +111,30 @@ class CorrelatorAgent {
   }
 
   /**
+   * Dynamically extract service names from logs
+   */
+  extractServicesFromLogs(logs) {
+    const services = new Set();
+    for (const log of logs) {
+      if (log.service) {
+        const normalized = this.normalizeServiceName(log.service);
+        if (normalized !== 'UNKNOWN') {
+          services.add(normalized);
+        }
+      }
+      if (log.container) {
+        const fromContainer = this.extractServiceFromContainer(log.container);
+        if (fromContainer !== 'UNKNOWN') {
+          services.add(fromContainer);
+        }
+      }
+    }
+    // Return as array, include common defaults if empty
+    const result = Array.from(services);
+    return result.length > 0 ? result : ['API-GATEWAY', 'USER-SERVICE', 'DB-SERVICE', 'AUTH-SERVICE', 'ORDER-SERVICE'];
+  }
+
+  /**
    * Extract service name from error message
    */
   extractServiceFromMessage(message) {
@@ -163,8 +187,8 @@ class CorrelatorAgent {
    * @returns {string} Origin service name
    */
   findOriginService(logs) {
-    // Known service names for validation
-    const knownServices = ['API-GATEWAY', 'USER-SERVICE', 'DB-SERVICE'];
+    // Dynamically build known services from logs instead of hardcoding
+    const knownServices = this.extractServicesFromLogs(logs);
 
     // Find the first ERROR or CRITICAL log with a valid service name
     for (const log of logs) {
@@ -212,10 +236,16 @@ class CorrelatorAgent {
     if (upper.includes('API') && upper.includes('GATEWAY')) return 'API-GATEWAY';
     if (upper.includes('USER') && upper.includes('SERVICE')) return 'USER-SERVICE';
     if (upper.includes('DB') && upper.includes('SERVICE')) return 'DB-SERVICE';
+    if (upper.includes('AUTH') && upper.includes('SERVICE')) return 'AUTH-SERVICE';
+    if (upper.includes('ORDER') && upper.includes('SERVICE')) return 'ORDER-SERVICE';
 
-    // Direct matches
-    const knownServices = ['API-GATEWAY', 'USER-SERVICE', 'DB-SERVICE'];
-    if (knownServices.includes(upper)) return upper;
+    // Check if it ends with -SERVICE
+    if (upper.endsWith('-SERVICE')) return upper;
+
+    // If contains SERVICE, try to format it
+    if (upper.includes('SERVICE')) {
+      return upper.replace(/\s+/g, '-');
+    }
 
     return upper === 'UNKNOWN' ? 'UNKNOWN' : upper;
   }
@@ -232,6 +262,18 @@ class CorrelatorAgent {
     if (lower.includes('api-gateway') || lower.includes('apigateway')) return 'API-GATEWAY';
     if (lower.includes('user-service') || lower.includes('userservice')) return 'USER-SERVICE';
     if (lower.includes('db-service') || lower.includes('dbservice')) return 'DB-SERVICE';
+    if (lower.includes('auth-service') || lower.includes('authservice')) return 'AUTH-SERVICE';
+    if (lower.includes('order-service') || lower.includes('orderservice')) return 'ORDER-SERVICE';
+
+    // Try to extract service name dynamically from container name
+    // Pattern: kubewhisper-<service-name> or <service-name>
+    const match = lower.match(/kubewhisper-(.+)|^(.+)-\d+$/);
+    if (match) {
+      const serviceName = (match[1] || match[2]).toUpperCase();
+      if (serviceName && serviceName !== 'TRAFFIC') {
+        return serviceName.includes('SERVICE') ? serviceName : `${serviceName}-SERVICE`;
+      }
+    }
 
     return 'UNKNOWN';
   }

@@ -87,11 +87,11 @@ If you cannot identify the exact problematic code, respond with:
     // Normalize service name
     const normalizedService = serviceName.toLowerCase().replace(/[_\s]/g, '-');
 
-    // Build possible paths
+    // Build possible paths dynamically (no hardcoded paths)
     const basePaths = [
       path.join(__dirname, '..', '..', 'services'),
       path.join(process.cwd(), 'services'),
-      'C:\\Users\\Suba Shree K B\\Kubewhisper\\services'
+      path.join(process.env.PROJECT_ROOT || process.cwd(), 'services')
     ];
 
     for (const basePath of basePaths) {
@@ -328,13 +328,25 @@ If you cannot identify the exact problematic code, respond with:
   findPatternBasedFix(sourceCode, errorType, analysis) {
     const lines = sourceCode.split('\n');
 
-    // Pattern 1: Random error simulation with SIMULATE_ERRORS flag
-    const simulateErrorPattern = /if\s*\(\s*SIMULATE_ERRORS\s*&&\s*Math\.random\(\)\s*<\s*[\d.]+\s*\)/;
+    // Guard: Skip if error type has already been fixed (check for DISABLED comment)
+    const alreadyFixedPattern = new RegExp(`// DISABLED:.*${errorType}`, 'i');
+    if (alreadyFixedPattern.test(sourceCode)) {
+      console.log(`[CodeFixAgent] Error type "${errorType}" appears to be already fixed`);
+      return null;
+    }
+
+    // Pattern 1: Random error simulation with SIMULATE_ERRORS or DEMO_MODE flag
+    const simulateErrorPattern = /if\s*\(\s*(SIMULATE_ERRORS|DEMO_MODE)\s*&&\s*Math\.random\(\)\s*<\s*[\d.]+\s*\)/;
     // Pattern 1b: Random error simulation without flag (legacy)
     const randomErrorPattern = /if\s*\(\s*Math\.random\(\)\s*<\s*[\d.]+\s*\)\s*\{/;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+
+      // Skip already commented lines
+      if (line.trim().startsWith('//') || line.trim().startsWith('/*')) {
+        continue;
+      }
 
       // Check for SIMULATE_ERRORS pattern first
       if (simulateErrorPattern.test(line)) {
@@ -373,8 +385,8 @@ If you cannot identify the exact problematic code, respond with:
         };
       }
 
-      // Check for legacy pattern without SIMULATE_ERRORS
-      if (randomErrorPattern.test(line) && !line.includes('SIMULATE_ERRORS')) {
+      // Check for legacy pattern without SIMULATE_ERRORS or DEMO_MODE
+      if (randomErrorPattern.test(line) && !line.includes('SIMULATE_ERRORS') && !line.includes('DEMO_MODE')) {
         let braceCount = 0;
         let endLine = i;
 
@@ -411,7 +423,7 @@ If you cannot identify the exact problematic code, respond with:
           // Look back to find the start of the if block
           let startLine = i;
           for (let j = i; j >= Math.max(0, i - 10); j--) {
-            if (lines[j].includes('if') && (lines[j].includes('SIMULATE_ERRORS') || lines[j].includes('Math.random'))) {
+            if (lines[j].includes('if') && (lines[j].includes('SIMULATE_ERRORS') || lines[j].includes('DEMO_MODE') || lines[j].includes('Math.random'))) {
               startLine = j;
               break;
             }
@@ -461,7 +473,7 @@ If you cannot identify the exact problematic code, respond with:
           // Look back to find the start of the if block
           let startLine = i;
           for (let j = i; j >= Math.max(0, i - 10); j--) {
-            if (lines[j].includes('if') && (lines[j].includes('SIMULATE_ERRORS') || lines[j].includes('Math.random'))) {
+            if (lines[j].includes('if') && (lines[j].includes('SIMULATE_ERRORS') || lines[j].includes('DEMO_MODE') || lines[j].includes('Math.random'))) {
               startLine = j;
               break;
             }

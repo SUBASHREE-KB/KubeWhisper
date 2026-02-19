@@ -1,12 +1,38 @@
+# Dependencies
 node_modules/
+
+# Environment
 .env
+.env.local
+.env.*.local
+
+# Logs
 *.log
+npm-debug.log*
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+nul
+
+# Backup files
+*.backup
+*.backup.*
+
+# Coverage
 coverage/
 .nyc_output/
 
-.env.example
-Dockerfile
-nul
-package-lock.json
+# Debug
+.debug/
 
+package-lock.json
+Dockerfile
+.env.example
