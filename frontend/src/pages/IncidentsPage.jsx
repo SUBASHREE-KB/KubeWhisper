@@ -77,35 +77,69 @@ function IncidentsPage({ logs, triggerAnalysis }) {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="metric-card">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-cyber-red/20 flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-cyber-red" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyber-red">
+          <div className="absolute inset-0 bg-cyber-red/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-cyber-red/20 flex items-center justify-center ring-1 ring-cyber-red/30">
+                <AlertCircle className="w-5 h-5 text-cyber-red" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Errors</p>
+                <span className="text-xs text-cyber-red">{errorCount > 0 ? 'Needs attention' : 'None'}</span>
+              </div>
             </div>
-            <span className="text-sm text-slate-400">Errors</span>
+            <p className="text-3xl font-bold text-cyber-red">{errorCount}</p>
           </div>
-          <p className="text-3xl font-bold text-cyber-red">{errorCount}</p>
         </div>
 
-        <div className="metric-card">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-cyber-yellow/20 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-cyber-yellow" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyber-yellow">
+          <div className="absolute inset-0 bg-cyber-yellow/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-cyber-yellow/20 flex items-center justify-center ring-1 ring-cyber-yellow/30">
+                <AlertTriangle className="w-5 h-5 text-cyber-yellow" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Warnings</p>
+                <span className="text-xs text-cyber-yellow">{warningCount > 0 ? 'Review soon' : 'None'}</span>
+              </div>
             </div>
-            <span className="text-sm text-slate-400">Warnings</span>
+            <p className="text-3xl font-bold text-cyber-yellow">{warningCount}</p>
           </div>
-          <p className="text-3xl font-bold text-cyber-yellow">{warningCount}</p>
         </div>
 
-        <div className="metric-card">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-cyber-green/20 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-cyber-green" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyber-green">
+          <div className="absolute inset-0 bg-cyber-green/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-cyber-green/20 flex items-center justify-center ring-1 ring-cyber-green/30">
+                <CheckCircle className="w-5 h-5 text-cyber-green" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Resolved</p>
+                <span className="text-xs text-cyber-green">Fixed</span>
+              </div>
             </div>
-            <span className="text-sm text-slate-400">Resolved</span>
+            <p className="text-3xl font-bold text-cyber-green">0</p>
           </div>
-          <p className="text-3xl font-bold text-cyber-green">0</p>
+        </div>
+
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyan-500">
+          <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center ring-1 ring-cyan-500/30">
+                <Clock className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Total Incidents</p>
+                <span className="text-xs text-cyan-400">All time</span>
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-white">{incidents.length}</p>
+          </div>
         </div>
       </div>
 

@@ -82,46 +82,74 @@ function ServiceHealthPage({ metrics, metricsHistory, logs }) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="metric-card">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-electric-500/20 flex items-center justify-center">
-              <Server className="w-5 h-5 text-electric-400" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyan-500">
+          <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center ring-1 ring-cyan-500/30">
+                <Server className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Total Services</p>
+                <span className="text-xs text-cyan-400">Monitored</span>
+              </div>
             </div>
-            <span className="text-sm text-slate-400">Total Services</span>
+            <p className="text-3xl font-bold text-white">{services.length}</p>
           </div>
-          <p className="text-3xl font-bold text-white">{services.length}</p>
         </div>
 
-        <div className="metric-card">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-cyber-green/20 flex items-center justify-center">
-              <Activity className="w-5 h-5 text-cyber-green" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyber-green">
+          <div className="absolute inset-0 bg-cyber-green/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-cyber-green/20 flex items-center justify-center ring-1 ring-cyber-green/30">
+                <Activity className="w-5 h-5 text-cyber-green" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Healthy</p>
+                <span className="text-xs text-cyber-green">Operational</span>
+              </div>
             </div>
-            <span className="text-sm text-slate-400">Healthy</span>
+            <p className="text-3xl font-bold text-cyber-green">
+              {services.filter(s => s.status === 'healthy').length}
+            </p>
           </div>
-          <p className="text-3xl font-bold text-cyber-green">
-            {services.filter(s => s.status === 'healthy').length}
-          </p>
         </div>
 
-        <div className="metric-card">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-cyber-green/20 flex items-center justify-center">
-              <Cpu className="w-5 h-5 text-cyber-green" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-electric-400">
+          <div className="absolute inset-0 bg-electric-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-electric-500/20 flex items-center justify-center ring-1 ring-electric-500/30">
+                <Cpu className="w-5 h-5 text-electric-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Avg CPU</p>
+                <span className={`text-xs ${parseFloat(avgCpu) > 70 ? 'text-cyber-yellow' : 'text-cyber-green'}`}>
+                  {parseFloat(avgCpu) > 70 ? 'High' : 'Normal'}
+                </span>
+              </div>
             </div>
-            <span className="text-sm text-slate-400">Avg CPU</span>
+            <p className="text-3xl font-bold text-white">{avgCpu}<span className="text-lg text-slate-400">%</span></p>
           </div>
-          <p className="text-3xl font-bold text-white">{avgCpu}%</p>
         </div>
 
-        <div className="metric-card">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-cyber-purple/20 flex items-center justify-center">
-              <HardDrive className="w-5 h-5 text-cyber-purple" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyan-500">
+          <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center ring-1 ring-cyan-500/30">
+                <HardDrive className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Avg Memory</p>
+                <span className={`text-xs ${parseFloat(avgMemory) > 70 ? 'text-cyber-yellow' : 'text-cyber-green'}`}>
+                  {parseFloat(avgMemory) > 70 ? 'High' : 'Stable'}
+                </span>
+              </div>
             </div>
-            <span className="text-sm text-slate-400">Avg Memory</span>
+            <p className="text-3xl font-bold text-white">{avgMemory}<span className="text-lg text-slate-400">%</span></p>
           </div>
-          <p className="text-3xl font-bold text-white">{avgMemory}%</p>
         </div>
       </div>
 

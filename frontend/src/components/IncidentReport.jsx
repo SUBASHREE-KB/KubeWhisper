@@ -252,7 +252,7 @@ Estimated Impact: ${report.metrics.estimatedImpact}
               {/* Timeline */}
               <div className="card p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <TimelineIcon sx={{ fontSize: 18, color: '#8B5CF6' }} />
+                  <TimelineIcon sx={{ fontSize: 18, color: '#0891B2' }} />
                   <h3 className="font-medium text-text-primary">Timeline</h3>
                   <span className="text-xs text-text-muted">({report.timeline.length} events)</span>
                 </div>

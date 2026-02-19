@@ -67,8 +67,8 @@ function SystemOverview({ metrics, metricsHistory }) {
     'api-gateway': '#3B82F6',
     'user-service': '#10B981',
     'db-service': '#F59E0B',
-    'auth-service': '#8B5CF6',
-    'order-service': '#EC4899',
+    'auth-service': '#0891B2',
+    'order-service': '#06B6D4',
     'default': '#94A3B8'
   };
 

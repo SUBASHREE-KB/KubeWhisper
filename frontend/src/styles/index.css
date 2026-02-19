@@ -57,8 +57,8 @@ body {
 }
 
 /* Glow Effects */
-.glow-purple {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(8, 145, 178, 0.3);
 }
 
 .glow-green {
@@ -85,10 +85,7 @@ body {
 
 /* Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0891B2;
 }
 
 /* Sidebar */
@@ -111,9 +108,14 @@ body {
 }
 
 .sidebar-item.active {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
-  color: #E879F9;
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(8, 145, 178, 0.12);
+  color: #22D3EE;
+  border: 1px solid #0891B2;
+  box-shadow: inset 2px 0 0 #0891B2;
+}
+
+.sidebar-item.active svg {
+  color: #0891B2;
 }
 
 /* Sidebar Collapsed */
@@ -148,9 +150,9 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-/* Button Styles - Purple/Pink Gradient */
+/* Button Styles - Cyan */
 .btn-primary {
-  background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
+  background: #0891B2;
   color: white;
   padding: 10px 20px;
   border-radius: 10px;
@@ -161,8 +163,9 @@ body {
 }
 
 .btn-primary:hover {
+  background: #0E7490;
   transform: translateY(-1px);
-  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 10px 30px rgba(8, 145, 178, 0.4);
 }
 
 .btn-primary:disabled {
@@ -217,9 +220,9 @@ body {
 }
 
 .badge-info {
-  background: rgba(168, 85, 247, 0.15);
-  color: #A855F7;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: rgba(8, 145, 178, 0.15);
+  color: #22D3EE;
+  border: 1px solid rgba(8, 145, 178, 0.3);
 }
 
 /* Log Viewer */
@@ -300,10 +303,10 @@ body {
   }
 }
 
-/* Spinner - Updated to purple */
+/* Spinner - Cyan */
 .spinner {
   border: 2px solid rgba(255, 255, 255, 0.1);
-  border-left-color: #A855F7;
+  border-left-color: #0891B2;
   border-radius: 50%;
   width: 20px;
   height: 20px;
@@ -349,10 +352,10 @@ body {
   font-size: 12px;
 }
 
-/* Focus Ring - Updated to purple */
+/* Focus Ring - Cyan */
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #0B1120, 0 0 0 4px #A855F7;
+  box-shadow: 0 0 0 2px #0B1120, 0 0 0 4px #0891B2;
 }
 
 /* Input - Base styles */
@@ -369,7 +372,7 @@ body {
 
 .input-glass:focus {
   outline: none;
-  border-color: #A855F7;
+  border-color: #0891B2;
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -403,7 +406,7 @@ select.input-glass,
 select.input-glass:focus,
 .select-glass:focus {
   outline: none;
-  border-color: #A855F7;
+  border-color: #0891B2;
   background-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -460,15 +463,15 @@ select.input-glass option,
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
-/* Accent colors - Purple/Pink theme */
+/* Accent colors - Cyan theme */
 .accent-gradient {
-  background: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
+  background: #0891B2;
 }
 
 .accent-text {
-  color: #A855F7;
+  color: #0891B2;
 }
 
 .accent-border {
-  border-color: rgba(168, 85, 247, 0.5);
+  border-color: rgba(8, 145, 178, 0.5);
 }

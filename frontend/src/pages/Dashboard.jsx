@@ -83,17 +83,17 @@ function Dashboard({
       {/* Metrics Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Services */}
-        <div className="metric-card group relative overflow-hidden border-l-4 border-purple-500">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="metric-card group relative overflow-hidden border-l-4 border-cyan-500">
+          <div className="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center ring-1 ring-purple-500/30">
-                <Activity className="w-5 h-5 text-purple-400" />
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center ring-1 ring-cyan-500/30">
+                <Activity className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
                 <p className="text-sm font-medium text-white">Active Services</p>
-                <span className="text-xs text-purple-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                <span className="text-xs text-cyan-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   Live
                 </span>
               </div>

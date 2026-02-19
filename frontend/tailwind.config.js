@@ -11,16 +11,6 @@ export default {
           700: '#1E293B',
           600: '#334155',
         },
-        purple: {
-          500: '#A855F7',
-          400: '#C084FC',
-          300: '#D8B4FE',
-        },
-        pink: {
-          500: '#EC4899',
-          400: '#F472B6',
-          300: '#F9A8D4',
-        },
         cyan: {
           500: '#06B6D4',
           400: '#22D3EE',
@@ -30,8 +20,7 @@ export default {
           green: '#10B981',
           red: '#EF4444',
           yellow: '#F59E0B',
-          purple: '#A855F7',
-          pink: '#EC4899',
+          cyan: '#0891B2',
         },
         glass: {
           light: 'rgba(255, 255, 255, 0.05)',
@@ -44,8 +33,7 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'glow-purple': '0 0 20px rgba(168, 85, 247, 0.3)',
-        'glow-pink': '0 0 20px rgba(236, 72, 153, 0.3)',
+        'glow-cyan': '0 0 20px rgba(8, 145, 178, 0.3)',
         'glow-green': '0 0 20px rgba(16, 185, 129, 0.3)',
         'glow-red': '0 0 20px rgba(239, 68, 68, 0.3)',
         'glass': '0 8px 32px rgba(0, 0, 0, 0.3)',

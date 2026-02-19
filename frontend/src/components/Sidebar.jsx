@@ -29,7 +29,7 @@ export default function Sidebar({ currentPath, systemStats }) {
       {/* Logo */}
       <div className="p-3 border-b border-white/5">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#0891B2' }}>
             <Activity className="w-4 h-4 text-white" />
           </div>
           {!collapsed && (
@@ -108,8 +108,9 @@ export default function Sidebar({ currentPath, systemStats }) {
             <div className="space-y-1">
               <div className="h-1 rounded-full bg-navy-700 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                  className="h-full rounded-full transition-all duration-500"
                   style={{
+                    background: 'linear-gradient(90deg, #0891B2, #06B6D4)',
                     width: systemStats.totalServices > 0
                       ? `${(systemStats.healthyServices / systemStats.totalServices) * 100}%`
                       : '0%'
