@@ -22,7 +22,7 @@ class CodeLocatorAgent {
       maxOutputTokens: 1024
     });
 
-    this.timeout = 10000; // 10 second timeout
+    this.timeout = 60000; // 60 second timeout
 
     this.promptTemplate = PromptTemplate.fromTemplate(`
 You are a code analysis expert specializing in Node.js and Express applications.
@@ -100,7 +100,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
         sourceCode: sourceCodeText
       });
 
-      console.log('[CodeLocatorAgent] Sending request to Gemini (timeout: 10s)');
+      console.log('[CodeLocatorAgent] Sending request to Gemini (timeout: 60s)');
 
       // Add timeout
       const timeoutPromise = new Promise((_, reject) =>

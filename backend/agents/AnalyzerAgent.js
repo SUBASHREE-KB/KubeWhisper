@@ -16,45 +16,88 @@ class AnalyzerAgent {
 
     this.model = new ChatGoogleGenerativeAI({
       apiKey: apiKey,
-      model: 'gemini-1.5-flash',  // Use Flash for faster responses
+      model: 'gemini-2.5-flash',  // Use Flash for faster responses
       temperature: 0.2,
       maxOutputTokens: 1024
     });
 
-    this.timeout = 15000; // 15 second timeout
+    this.timeout = 60000; // 60 second timeout (Gemini can be slow)
 
     this.promptTemplate = PromptTemplate.fromTemplate(`
 You are a senior DevOps engineer and expert at analyzing microservice failures.
+Your goal is to provide SPECIFIC, ACTIONABLE analysis based on the actual log data provided.
+
+IMPORTANT RULES:
+1. NEVER use generic phrases like "Check logs" or "Review configuration"
+2. ALWAYS reference specific error messages from the logs
+3. Identify the EXACT function, file, or endpoint mentioned in errors
+4. Provide concrete, actionable recommendations
+5. If you see a stack trace, identify the specific line and function
+6. Quote actual error messages when relevant
+
 Analyze these correlated logs from multiple services:
 
 {logs}
 
-Error Summary:
-- Origin Service: {originService}
-- Affected Services: {affectedServices}
-- Error Types Detected: {errorTypes}
-- Error Messages: {errorMessages}
+Error Context:
+- Primary Service Affected: {originService}
+- Cascade to Services: {affectedServices}
+- Error Classifications: {errorTypes}
+- Key Error Messages: {errorMessages}
 
-Determine:
-1. ROOT CAUSE: What is the underlying problem?
-2. ORIGIN SERVICE: Which service caused the initial failure?
-3. ERROR TYPE: Categorize (database_timeout | network_error | null_pointer | memory_leak | auth_failure | rate_limit | connection_pool_exhaustion | other)
-4. SEVERITY: Rate as LOW | MEDIUM | HIGH | CRITICAL
-5. PROPAGATION PATH: How did the error cascade through services?
-6. AFFECTED ENDPOINTS: Which API endpoints failed?
+REQUIRED ANALYSIS:
+
+1. ROOT CAUSE IDENTIFICATION:
+   - What is the specific technical failure?
+   - Quote the relevant error message
+   - Identify the failing component (function/class/endpoint)
+
+2. SERVICE IMPACT:
+   - Which service triggered the failure first?
+   - How did the error propagate to other services?
+   - What downstream operations were affected?
+
+3. SEVERITY ASSESSMENT:
+   - CRITICAL: Data loss, complete service outage, security breach
+   - HIGH: Major feature broken, significant performance impact
+   - MEDIUM: Feature degraded, workaround available
+   - LOW: Minor issue, cosmetic, non-blocking
+
+4. ACTIONABLE RECOMMENDATIONS:
+   - Provide specific code/configuration changes
+   - Include exact values, timeouts, or thresholds to change
+   - Specify which file/service to modify
 
 Respond ONLY with valid JSON (no markdown code blocks, no backticks):
 {{
-  "rootCause": "concise description of the root cause",
+  "rootCause": "Specific technical description with quoted error message",
   "originService": "exact service name from logs",
-  "errorType": "category from the list above",
+  "errorType": "database_timeout | network_error | null_pointer | memory_leak | auth_failure | rate_limit | connection_pool_exhaustion | validation_error | other",
   "severity": "LOW | MEDIUM | HIGH | CRITICAL",
-  "propagationPath": ["Step 1: Description", "Step 2: Description", "Step 3: Description"],
+  "failingComponent": {{
+    "service": "service-name",
+    "file": "filename.js or unknown",
+    "function": "functionName or endpoint path",
+    "line": "line number if available or null"
+  }},
+  "propagationPath": ["Step 1: Specific description with service names", "Step 2: How it cascaded"],
   "affectedServices": ["service1", "service2"],
-  "affectedEndpoints": ["/api/endpoint1", "/api/endpoint2"],
-  "technicalDetails": "deeper technical explanation for engineers",
-  "immediateActions": ["action 1", "action 2"],
-  "longTermFixes": ["fix 1", "fix 2"]
+  "affectedEndpoints": ["/api/specific/endpoint"],
+  "technicalDetails": "Detailed explanation referencing actual log content",
+  "immediateActions": [
+    "Specific action 1 with exact values/changes",
+    "Specific action 2"
+  ],
+  "longTermFixes": [
+    "Architectural change or code improvement with specifics",
+    "Monitoring/alerting recommendation"
+  ],
+  "relatedErrorPatterns": ["Similar errors to watch for"],
+  "estimatedImpact": {{
+    "usersAffected": "none | few | some | many | all",
+    "dataAtRisk": "none | low | medium | high",
+    "serviceAvailability": "percentage estimate"
+  }}
 }}
 `);
 
@@ -88,7 +131,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
         errorMessages: correlatedData.errorDetails.errorMessages.slice(0, 5).join('\n')
       });
 
-      console.log('[AnalyzerAgent] Sending request to Gemini (timeout: 15s)');
+      console.log('[AnalyzerAgent] Sending request to Gemini (timeout: 60s)');
 
       // Invoke the model with timeout
       const timeoutPromise = new Promise((_, reject) =>
@@ -157,12 +200,30 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
         // Normalize origin service - never return "Unknown"
         if (!parsed.originService || parsed.originService.toLowerCase() === 'unknown') {
           // Try to infer from affected services
-          const knownServices = ['API-GATEWAY', 'USER-SERVICE', 'DB-SERVICE'];
+          const knownServices = ['API-GATEWAY', 'USER-SERVICE', 'DB-SERVICE', 'AUTH-SERVICE', 'ORDER-SERVICE'];
           const found = parsed.affectedServices?.find(s =>
             knownServices.some(k => s.toUpperCase().includes(k.replace('-', '')))
           );
           parsed.originService = found || 'USER-SERVICE';
         }
+
+        // Ensure all required fields have defaults
+        parsed.failingComponent = parsed.failingComponent || {
+          service: parsed.originService,
+          file: 'unknown',
+          function: 'unknown',
+          line: null
+        };
+
+        parsed.estimatedImpact = parsed.estimatedImpact || {
+          usersAffected: 'unknown',
+          dataAtRisk: 'none',
+          serviceAvailability: '100%'
+        };
+
+        parsed.relatedErrorPatterns = parsed.relatedErrorPatterns || [];
+        parsed.immediateActions = parsed.immediateActions || [];
+        parsed.longTermFixes = parsed.longTermFixes || [];
 
         return parsed;
       }
@@ -182,6 +243,8 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
         affectedServices: [],
         affectedEndpoints: [],
         technicalDetails: content.substring(0, 500),
+        failingComponent: { service: 'unknown', file: 'unknown', function: 'unknown', line: null },
+        estimatedImpact: { usersAffected: 'unknown', dataAtRisk: 'none', serviceAvailability: 'unknown' },
         parseError: error.message
       };
     }
@@ -267,11 +330,22 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
     // Generate specific long-term fixes
     const longTermFixes = this.generateLongTermFixes(errorType);
 
+    // Extract failing component from error messages
+    const failingComponent = this.extractFailingComponent(messages, originService);
+
+    // Estimate impact
+    const estimatedImpact = {
+      usersAffected: affectedServices.length >= 3 ? 'many' : affectedServices.length >= 2 ? 'some' : 'few',
+      dataAtRisk: errorType === 'database_timeout' || errorType === 'validation_error' ? 'medium' : 'none',
+      serviceAvailability: severity === 'CRITICAL' ? '50%' : severity === 'HIGH' ? '80%' : '95%'
+    };
+
     return {
       rootCause: rootCause,
       originService: originService,
       errorType: errorType,
       severity: severity,
+      failingComponent: failingComponent,
       propagationPath: affectedServices.map((s, i) =>
         `Step ${i + 1}: Error ${i === 0 ? 'originated in' : 'propagated to'} ${s}`
       ),
@@ -280,8 +354,65 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
       technicalDetails: technicalDetails,
       immediateActions: immediateActions,
       longTermFixes: longTermFixes,
+      relatedErrorPatterns: this.findRelatedPatterns(errorType),
+      estimatedImpact: estimatedImpact,
       confidence: 'medium'
     };
+  }
+
+  /**
+   * Extract failing component from error messages
+   */
+  extractFailingComponent(messages, originService) {
+    const component = {
+      service: originService,
+      file: 'unknown',
+      function: 'unknown',
+      line: null
+    };
+
+    for (const msg of messages) {
+      // Try to extract file name
+      const fileMatch = msg.match(/(\w+\.js|\w+\.ts)(?::(\d+))?/);
+      if (fileMatch) {
+        component.file = fileMatch[1];
+        if (fileMatch[2]) {
+          component.line = parseInt(fileMatch[2]);
+        }
+      }
+
+      // Try to extract function name
+      const funcMatch = msg.match(/(?:at|in|function)\s+(\w+)/i);
+      if (funcMatch) {
+        component.function = funcMatch[1];
+      }
+
+      // Try to extract endpoint
+      const endpointMatch = msg.match(/(?:GET|POST|PUT|DELETE|PATCH)\s+(\/[\w\-\/]+)/);
+      if (endpointMatch) {
+        component.function = endpointMatch[1];
+      }
+    }
+
+    return component;
+  }
+
+  /**
+   * Find related error patterns to watch for
+   */
+  findRelatedPatterns(errorType) {
+    const patterns = {
+      database_timeout: ['Connection pool exhaustion', 'Query timeouts', 'Deadlock warnings'],
+      memory_leak: ['High GC activity', 'Heap warnings', 'Out of memory'],
+      connection_pool_exhaustion: ['Database timeouts', 'Connection refused', 'Pool wait timeouts'],
+      network_error: ['Connection reset', 'DNS resolution failures', 'TLS handshake errors'],
+      null_pointer: ['Undefined variable', 'Property access on null', 'Type errors'],
+      validation_error: ['Constraint violations', 'Duplicate key', 'Invalid format'],
+      auth_failure: ['Token expired', 'Invalid credentials', 'Permission denied'],
+      rate_limit: ['429 errors', 'Quota exceeded', 'Throttling warnings']
+    };
+
+    return patterns[errorType] || ['General errors in related services'];
   }
 
   /**

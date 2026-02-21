@@ -45,6 +45,7 @@ function IncidentsPage({ logs, triggerAnalysis }) {
   const formatServiceName = (name) => {
     return name
       ?.replace('kubewhisper-', '')
+      ?.replace('loglens-', '')
       ?.split('-')
       ?.map(word => word.charAt(0).toUpperCase() + word.slice(1))
       ?.join(' ') || 'Unknown';

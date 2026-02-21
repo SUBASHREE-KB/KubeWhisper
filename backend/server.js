@@ -1,5 +1,5 @@
 /**
- * KubeWhisper Backend Server
+ * LogLens Backend Server
  * Real-Time Root Cause Analysis Dashboard
  */
 
@@ -21,6 +21,10 @@ const CodeFixAgent = require('./agents/CodeFixAgent');
 const MonitorAgent = require('./agents/MonitorAgent');
 const ServiceDiscovery = require('./services/ServiceDiscovery');
 const servicesConfig = require('./config/services.config');
+
+// Import new services
+const sourceCodeManager = require('./services/SourceCodeManager');
+const logDatabase = require('./database/LogDatabase');
 
 // Configuration
 const PORT = process.env.PORT || 4000;
@@ -145,6 +149,18 @@ setInterval(() => {
 // LogCollector event handlers
 logCollector.on('log', (log) => {
   logBatch.push(log);
+
+  // Persist to database (non-blocking)
+  try {
+    const isNew = logDatabase.insertLog(log);
+    if (isNew && ['ERROR', 'CRITICAL'].includes(log.level)) {
+      // Track error for correlation
+      logDatabase.trackError(log);
+    }
+  } catch (err) {
+    // Don't let database errors affect log streaming
+    console.error('[Server] Database insert error:', err.message);
+  }
 });
 
 logCollector.on('error-detected', async (errorLog) => {
@@ -714,6 +730,310 @@ app.post('/api/config/services/remove', (req, res) => {
   }
 });
 
+// ============================================
+// SOURCE CODE MANAGEMENT API ENDPOINTS
+// ============================================
+
+// Browse local directories for folder picker
+app.get('/api/browse-directories', async (req, res) => {
+  const fs = require('fs').promises;
+  const pathModule = require('path');
+
+  let { path: dirPath } = req.query;
+
+  // Default to common starting points
+  if (!dirPath) {
+    // Return root drives/directories based on OS
+    if (process.platform === 'win32') {
+      // Windows: return common drives
+      const drives = ['C:\\', 'D:\\', 'E:\\'];
+      const available = [];
+      for (const drive of drives) {
+        try {
+          await fs.access(drive);
+          available.push({ name: drive, path: drive, isDirectory: true });
+        } catch (e) {
+          // Drive not available
+        }
+      }
+      // Also add user's home directory
+      const homeDir = process.env.USERPROFILE || process.env.HOME;
+      if (homeDir) {
+        available.unshift({ name: 'Home', path: homeDir, isDirectory: true });
+      }
+      // Add current project directory
+      const projectDir = pathModule.resolve(__dirname, '..');
+      available.unshift({ name: 'Project Root', path: projectDir, isDirectory: true });
+
+      return res.json({ path: '', items: available, isRoot: true });
+    } else {
+      // Unix: start from home or root
+      dirPath = process.env.HOME || '/';
+    }
+  }
+
+  try {
+    const resolvedPath = pathModule.resolve(dirPath);
+    const entries = await fs.readdir(resolvedPath, { withFileTypes: true });
+
+    const items = entries
+      .filter(entry => entry.isDirectory())
+      .filter(entry => !entry.name.startsWith('.')) // Hide hidden folders
+      .filter(entry => !['node_modules', '__pycache__', '.git', 'dist', 'build'].includes(entry.name))
+      .map(entry => ({
+        name: entry.name,
+        path: pathModule.join(resolvedPath, entry.name),
+        isDirectory: true
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    // Add parent directory option
+    const parentPath = pathModule.dirname(resolvedPath);
+    const hasParent = parentPath !== resolvedPath;
+
+    res.json({
+      path: resolvedPath,
+      parent: hasParent ? parentPath : null,
+      items,
+      isRoot: !hasParent
+    });
+  } catch (error) {
+    res.status(400).json({ error: `Cannot access directory: ${error.message}` });
+  }
+});
+
+// Validate a local path
+app.post('/api/validate-path', async (req, res) => {
+  const fs = require('fs').promises;
+  const pathModule = require('path');
+
+  const { path: dirPath } = req.body;
+
+  if (!dirPath) {
+    return res.status(400).json({ valid: false, error: 'Path is required' });
+  }
+
+  try {
+    const resolvedPath = pathModule.resolve(dirPath);
+    const stat = await fs.stat(resolvedPath);
+
+    if (!stat.isDirectory()) {
+      return res.json({ valid: false, error: 'Path is not a directory' });
+    }
+
+    // Check if it contains service-like subdirectories
+    const entries = await fs.readdir(resolvedPath);
+    const hasServices = entries.some(name =>
+      name.includes('service') || name.includes('api') || name.includes('gateway')
+    );
+
+    res.json({
+      valid: true,
+      path: resolvedPath,
+      hasServices,
+      entries: entries.slice(0, 10) // Preview of contents
+    });
+  } catch (error) {
+    res.json({ valid: false, error: error.message });
+  }
+});
+
+// Get source code configuration status
+app.get('/api/source-code/status', (req, res) => {
+  res.json(sourceCodeManager.getStatus());
+});
+
+// Configure source code access
+app.post('/api/source-code/configure', async (req, res) => {
+  try {
+    const status = await sourceCodeManager.configure(req.body);
+    io.emit('source-code-configured', status);
+    res.json(status);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// List GitHub repositories (if GitHub mode)
+app.get('/api/source-code/github/repos', async (req, res) => {
+  try {
+    const repos = await sourceCodeManager.listGitHubRepos();
+    res.json(repos);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Read source file
+app.get('/api/source-code/file', async (req, res) => {
+  const { service, fileName } = req.query;
+
+  if (!service || !fileName) {
+    return res.status(400).json({ error: 'service and fileName are required' });
+  }
+
+  try {
+    const file = await sourceCodeManager.readFile(service, fileName);
+    if (file) {
+      res.json(file);
+    } else {
+      res.status(404).json({ error: 'File not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// List files in a service directory
+app.get('/api/source-code/files', async (req, res) => {
+  const { service } = req.query;
+
+  if (!service) {
+    return res.status(400).json({ error: 'service is required' });
+  }
+
+  try {
+    const files = await sourceCodeManager.listFiles(service);
+    res.json(files);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Request a code modification (creates pending modification)
+app.post('/api/source-code/request-modification', async (req, res) => {
+  try {
+    const modification = await sourceCodeManager.requestModification(req.body);
+
+    // Notify clients about pending modification
+    io.emit('modification-requested', {
+      modificationId: modification.id,
+      fileName: modification.fileName,
+      serviceName: modification.serviceName,
+      explanation: modification.explanation
+    });
+
+    res.json(modification);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get pending modifications
+app.get('/api/source-code/pending-modifications', (req, res) => {
+  res.json(sourceCodeManager.listPendingModifications());
+});
+
+// Get specific pending modification
+app.get('/api/source-code/modification/:id', (req, res) => {
+  const modification = sourceCodeManager.getPendingModification(req.params.id);
+  if (modification) {
+    res.json(modification);
+  } else {
+    res.status(404).json({ error: 'Modification not found' });
+  }
+});
+
+// Confirm and apply modification
+app.post('/api/source-code/confirm-modification/:id', async (req, res) => {
+  try {
+    const result = await sourceCodeManager.confirmModification(req.params.id);
+
+    io.emit('modification-applied', {
+      modificationId: result.id,
+      status: result.status,
+      appliedAt: result.appliedAt
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Reject modification
+app.post('/api/source-code/reject-modification/:id', (req, res) => {
+  try {
+    const result = sourceCodeManager.rejectModification(req.params.id);
+
+    io.emit('modification-rejected', {
+      modificationId: result.id,
+      status: result.status
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// ============================================
+// LOG DATABASE API ENDPOINTS
+// ============================================
+
+// Get database statistics
+app.get('/api/database/stats', (req, res) => {
+  res.json(logDatabase.getStats());
+});
+
+// Search logs in database
+app.get('/api/database/search', (req, res) => {
+  const { query, service, level, startDate, endDate, limit, offset } = req.query;
+
+  try {
+    const results = logDatabase.searchLogs({
+      query,
+      service,
+      level,
+      startDate,
+      endDate,
+      limit: parseInt(limit) || 100,
+      offset: parseInt(offset) || 0
+    });
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Find similar errors
+app.get('/api/database/similar-errors', (req, res) => {
+  const { service, message, limit } = req.query;
+
+  if (!message) {
+    return res.status(400).json({ error: 'message is required' });
+  }
+
+  try {
+    const similar = logDatabase.findSimilarErrors(message, service, parseInt(limit) || 10);
+    res.json(similar);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get error trends
+app.get('/api/database/error-trends', (req, res) => {
+  const { hours } = req.query;
+
+  try {
+    const trends = logDatabase.getErrorTrends(parseInt(hours) || 24);
+    res.json(trends);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Run manual cleanup
+app.post('/api/database/cleanup', (req, res) => {
+  try {
+    logDatabase.cleanup();
+    res.json({ success: true, message: 'Cleanup completed' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Apply generated fix to source code
 app.post('/api/apply-fix', async (req, res) => {
   const { fixedCode, serviceName, fileName } = req.body;
@@ -823,16 +1143,21 @@ app.post('/api/rebuild-service', async (req, res) => {
 
 // Start server
 server.listen(PORT, () => {
+  const dbStatus = logDatabase.isReady ? 'SQLite Ready ✓' : 'SQLite Disabled';
+
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║   🚀 KubeWhisper Backend Server                           ║
+║   🔍 LogLens Backend Server                               ║
+║   Real-Time Root Cause Analysis Dashboard                 ║
 ║                                                           ║
 ║   Server:    http://localhost:${PORT}                       ║
 ║   WebSocket: ws://localhost:${PORT}                         ║
 ║   Frontend:  ${FRONTEND_URL}                    ║
 ║                                                           ║
 ║   AI:        ${GEMINI_API_KEY ? 'Gemini Enabled ✓' : 'Disabled (No API Key)'}                        ║
+║   Database:  ${dbStatus}                          ║
+║   Source:    ${sourceCodeManager.mode} mode                         ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
   `);

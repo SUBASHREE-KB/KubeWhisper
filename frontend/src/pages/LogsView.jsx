@@ -123,7 +123,7 @@ function LogsView({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kubewhisper-logs-${new Date().toISOString()}.txt`;
+    a.download = `loglens-logs-${new Date().toISOString()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };

@@ -19,19 +19,19 @@ function ExportPage({ logs, metrics, metricsHistory }) {
     switch (exportType) {
       case 'logs':
         data = logs;
-        filename = `kubewhisper-logs-${new Date().toISOString().split('T')[0]}`;
+        filename = `loglens-logs-${new Date().toISOString().split('T')[0]}`;
         break;
       case 'metrics':
         data = metrics;
-        filename = `kubewhisper-metrics-${new Date().toISOString().split('T')[0]}`;
+        filename = `loglens-metrics-${new Date().toISOString().split('T')[0]}`;
         break;
       case 'history':
         data = metricsHistory;
-        filename = `kubewhisper-history-${new Date().toISOString().split('T')[0]}`;
+        filename = `loglens-history-${new Date().toISOString().split('T')[0]}`;
         break;
       default:
         data = { logs, metrics, metricsHistory };
-        filename = `kubewhisper-full-export-${new Date().toISOString().split('T')[0]}`;
+        filename = `loglens-full-export-${new Date().toISOString().split('T')[0]}`;
     }
 
     // Create file content

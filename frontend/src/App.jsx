@@ -10,6 +10,7 @@ import InsightsPage from './pages/InsightsPage';
 import ServiceHealthPage from './pages/ServiceHealthPage';
 import IncidentsPage from './pages/IncidentsPage';
 import ExportPage from './pages/ExportPage';
+import SettingsPage from './pages/SettingsPage';
 
 function AppShell({ children, connected, metrics }) {
   const location = useLocation();
@@ -116,6 +117,7 @@ function App() {
           <Route path="/services" element={<ServiceHealthPage {...sharedProps} />} />
           <Route path="/incidents" element={<IncidentsPage {...sharedProps} />} />
           <Route path="/export" element={<ExportPage {...sharedProps} />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>

@@ -23,7 +23,7 @@ class CodeFixAgent {
       maxOutputTokens: 4096
     });
 
-    this.timeout = 45000; // 45 second timeout for code analysis
+    this.timeout = 90000; // 90 second timeout for code analysis (Gemini can be slow)
 
     // Prompt for analyzing code and generating fixes
     this.analyzePrompt = PromptTemplate.fromTemplate(`

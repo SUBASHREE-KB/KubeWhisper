@@ -22,7 +22,7 @@ class FixGeneratorAgent {
       maxOutputTokens: 2048
     });
 
-    this.timeout = 30000; // 30 second timeout for fix generation
+    this.timeout = 90000; // 90 second timeout for fix generation (needs more time)
 
     this.promptTemplate = PromptTemplate.fromTemplate(`
 You are a senior software engineer fixing production bugs in a Node.js/Express microservice.
@@ -108,7 +108,7 @@ Respond with valid JSON (no markdown code blocks, no backticks):
         fullFileContent: fullFileContent
       });
 
-      console.log('[FixGeneratorAgent] Sending request to Gemini (timeout: 20s)');
+      console.log('[FixGeneratorAgent] Sending request to Gemini (timeout: 90s)');
 
       // Add timeout
       const timeoutPromise = new Promise((_, reject) =>

@@ -9,7 +9,8 @@ import {
   Download,
   Zap,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Settings
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { path: '/logs', label: 'Logs', icon: FileText },
   { path: '/incidents', label: 'Incidents', icon: AlertTriangle },
   { path: '/export', label: 'Export', icon: Download },
+  { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Sidebar({ currentPath, systemStats }) {
@@ -34,8 +36,8 @@ export default function Sidebar({ currentPath, systemStats }) {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <h1 className="text-base font-semibold text-white truncate">KubeWhisper</h1>
-              <p className="text-xs text-slate-500">RCA Dashboard</p>
+              <h1 className="text-base font-semibold text-white truncate">LogLens</h1>
+              <p className="text-xs text-slate-500">Root Cause Analysis</p>
             </div>
           )}
         </div>
