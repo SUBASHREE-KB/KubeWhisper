@@ -1,7 +1,7 @@
 {
-  "name": "kubewhisper-backend",
+  "name": "loglens-backend",
   "version": "1.0.0",
-  "description": "KubeWhisper Backend - Real-Time Root Cause Analysis",
+  "description": "LogLens Backend - Real-Time Root Cause Analysis",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -15,6 +15,7 @@
     "@langchain/google-genai": "^0.0.25",
     "@langchain/core": "^0.2.0",
     "langchain": "^0.2.0",
-    "dockerode": "^4.0.0"
+    "dockerode": "^4.0.0",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

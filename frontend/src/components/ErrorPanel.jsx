@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertTriangle,
   X,
@@ -16,7 +16,9 @@ import {
   Eye,
   EyeOff,
   Target,
-  ArrowRight
+  ArrowRight,
+  History,
+  Lightbulb
 } from 'lucide-react';
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -44,6 +46,60 @@ function ErrorPanel({
   const [isGeneratingTargetedFix, setIsGeneratingTargetedFix] = useState(false);
   const [targetedFixError, setTargetedFixError] = useState(null);
   const [showDiff, setShowDiff] = useState(true);
+
+  // State for similar resolutions (learning from past fixes)
+  const [similarResolutions, setSimilarResolutions] = useState([]);
+  const [showSimilarResolutions, setShowSimilarResolutions] = useState(false);
+
+  // Fetch similar resolutions when analysis changes
+  useEffect(() => {
+    if (analysis?.analysis?.rootCause || analysis?.errorLog?.message) {
+      fetchSimilarResolutions();
+    }
+  }, [analysis]);
+
+  const fetchSimilarResolutions = async () => {
+    try {
+      const message = analysis?.analysis?.rootCause || analysis?.errorLog?.message || '';
+      const service = analysis?.analysis?.originService || '';
+
+      const params = new URLSearchParams({
+        message,
+        service,
+        limit: '5'
+      });
+
+      const res = await fetch(`${API_URL}/api/resolutions/similar?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSimilarResolutions(data);
+      }
+    } catch (e) {
+      console.log('Could not fetch similar resolutions');
+    }
+  };
+
+  // Store resolution when fix is applied
+  const storeResolution = async (fixData) => {
+    try {
+      await fetch(`${API_URL}/api/resolutions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          errorMessage: analysis?.errorLog?.message || '',
+          rootCause: analysis?.analysis?.rootCause || '',
+          fixApplied: fixData.newCode || fixData.fixedCode || '',
+          fixDescription: fixData.explanation || 'Applied fix',
+          service: analysis?.analysis?.originService || '',
+          filePath: fixData.filePath || '',
+          wasSuccessful: true
+        })
+      });
+      console.log('[Resolution] Stored for future learning');
+    } catch (e) {
+      console.log('Could not store resolution:', e.message);
+    }
+  };
 
   const copyToClipboard = async (text) => {
     try {
@@ -120,6 +176,9 @@ function ErrorPanel({
       if (response.ok && data.success) {
         setApplyStatus('success');
         console.log('[ApplyFix] Success:', data.message);
+
+        // Store resolution for learning
+        storeResolution(targetedFix);
       } else {
         setApplyStatus('error');
         console.error('[ApplyFix] Failed:', data.error);
@@ -317,6 +376,60 @@ function ErrorPanel({
                 </div>
                 <p className="text-slate-300 text-sm">{errorAnalysis?.rootCause || 'Unable to determine root cause'}</p>
               </div>
+
+              {/* Similar Past Resolutions */}
+              {similarResolutions.length > 0 && (
+                <div className="glass-card p-4 border border-purple-500/30">
+                  <button
+                    onClick={() => setShowSimilarResolutions(!showSimilarResolutions)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-purple-400" />
+                      <span className="font-medium text-white">Similar Past Fixes</span>
+                      <span className="badge bg-purple-500/20 text-purple-300 border-purple-500/30">
+                        {similarResolutions.length} found
+                      </span>
+                    </div>
+                    {showSimilarResolutions ? (
+                      <ChevronUp className="w-4 h-4 text-slate-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    )}
+                  </button>
+
+                  {showSimilarResolutions && (
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                        <Lightbulb className="w-3 h-3" />
+                        <span>These past resolutions may help solve this error:</span>
+                      </div>
+                      {similarResolutions.map((resolution, idx) => (
+                        <div key={idx} className="bg-black/30 rounded-xl p-3 border border-white/5">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-slate-500">
+                              {resolution.service} - {new Date(resolution.created_at).toLocaleDateString()}
+                            </span>
+                            {resolution.was_successful && (
+                              <span className="badge badge-success text-xs">Worked</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-300 mb-2 line-clamp-2">
+                            {resolution.error_message?.substring(0, 150)}...
+                          </p>
+                          {resolution.fix_description && (
+                            <div className="bg-electric-500/10 border border-electric-500/20 rounded-lg p-2 mt-2">
+                              <p className="text-xs text-electric-300">
+                                <strong>Fix applied:</strong> {resolution.fix_description}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Technical Details */}
               {errorAnalysis?.technicalDetails && (

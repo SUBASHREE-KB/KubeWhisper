@@ -1034,6 +1034,328 @@ app.post('/api/database/cleanup', (req, res) => {
   }
 });
 
+// ============================================
+// ERROR RESOLUTION LEARNING API ENDPOINTS
+// ============================================
+
+// Store a successful error resolution
+app.post('/api/resolutions', async (req, res) => {
+  const { errorHash, errorMessage, rootCause, fixApplied, fixDescription, service, filePath, resolutionTime, wasSuccessful } = req.body;
+
+  if (!errorMessage || !fixApplied) {
+    return res.status(400).json({ error: 'errorMessage and fixApplied are required' });
+  }
+
+  try {
+    const resolution = await logDatabase.storeErrorResolution({
+      errorHash: errorHash || logDatabase.generateLogHash({ service, message: errorMessage, level: 'ERROR' }),
+      errorMessage,
+      rootCause,
+      fixApplied,
+      fixDescription,
+      service,
+      filePath,
+      resolutionTime,
+      wasSuccessful
+    });
+
+    io.emit('resolution-stored', {
+      id: resolution.id,
+      service,
+      errorMessage: errorMessage.substring(0, 100)
+    });
+
+    res.json({ success: true, resolution });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get similar resolutions for an error (learning from past fixes)
+app.get('/api/resolutions/similar', async (req, res) => {
+  const { message, service, limit } = req.query;
+
+  if (!message) {
+    return res.status(400).json({ error: 'message is required' });
+  }
+
+  try {
+    const similar = await logDatabase.getSimilarResolutions(
+      message,
+      service,
+      parseInt(limit) || 5
+    );
+    res.json(similar);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// PREDICTIVE INSIGHTS API ENDPOINTS
+// ============================================
+
+// Store a prediction
+app.post('/api/predictions', async (req, res) => {
+  const { type, service, issue, confidence, timeHorizon, basedOn } = req.body;
+
+  if (!type || !issue) {
+    return res.status(400).json({ error: 'type and issue are required' });
+  }
+
+  try {
+    const prediction = await logDatabase.storePrediction({
+      type,
+      service,
+      issue,
+      confidence: confidence || 0.5,
+      timeHorizon: timeHorizon || '1 hour',
+      basedOn
+    });
+
+    io.emit('prediction-created', prediction);
+    res.json({ success: true, prediction });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get active predictions
+app.get('/api/predictions', async (req, res) => {
+  const { service } = req.query;
+
+  try {
+    const predictions = await logDatabase.getActivePredictions(service);
+    res.json(predictions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Generate predictive insights based on historical data
+app.get('/api/predictions/generate', async (req, res) => {
+  const { service } = req.query;
+
+  try {
+    // Get error trends
+    const trends = await logDatabase.getErrorTrends(24);
+    const metricsHistory = await logDatabase.getMetricsHistory(service, 24);
+
+    const predictions = [];
+
+    // Analyze error rate trends
+    const recentHours = trends.byHour.slice(-6);
+    const olderHours = trends.byHour.slice(-12, -6);
+
+    const recentAvg = recentHours.reduce((sum, h) => sum + h.count, 0) / 6;
+    const olderAvg = olderHours.reduce((sum, h) => sum + h.count, 0) / 6;
+
+    if (recentAvg > olderAvg * 1.5 && recentAvg > 2) {
+      const prediction = await logDatabase.storePrediction({
+        type: 'error_spike',
+        service: service || 'all',
+        issue: `Error rate increasing: ${recentAvg.toFixed(1)} errors/hour vs ${olderAvg.toFixed(1)} previously`,
+        confidence: Math.min(0.9, 0.5 + (recentAvg - olderAvg) / 10),
+        timeHorizon: '1-2 hours',
+        basedOn: { recentAvg, olderAvg, trend: 'increasing' }
+      });
+      predictions.push(prediction);
+    }
+
+    // Analyze resource usage
+    if (metricsHistory.length > 10) {
+      const recentMetrics = metricsHistory.slice(-10);
+      const avgCpu = recentMetrics.reduce((sum, m) => sum + (m.cpu_percent || 0), 0) / 10;
+      const avgMemory = recentMetrics.reduce((sum, m) => sum + (m.memory_percent || 0), 0) / 10;
+
+      if (avgCpu > 70) {
+        const prediction = await logDatabase.storePrediction({
+          type: 'resource_exhaustion',
+          service: service || recentMetrics[0]?.service,
+          issue: `High CPU usage: ${avgCpu.toFixed(1)}% average over recent samples`,
+          confidence: Math.min(0.9, avgCpu / 100),
+          timeHorizon: '30 minutes',
+          basedOn: { avgCpu, samples: 10 }
+        });
+        predictions.push(prediction);
+      }
+
+      if (avgMemory > 80) {
+        const prediction = await logDatabase.storePrediction({
+          type: 'memory_pressure',
+          service: service || recentMetrics[0]?.service,
+          issue: `High memory usage: ${avgMemory.toFixed(1)}% - potential OOM risk`,
+          confidence: Math.min(0.95, avgMemory / 100),
+          timeHorizon: '15-30 minutes',
+          basedOn: { avgMemory, samples: 10 }
+        });
+        predictions.push(prediction);
+      }
+    }
+
+    // Check for recurring error patterns
+    for (const [svc, data] of Object.entries(trends.byService)) {
+      if (data.count > 5) {
+        const prediction = await logDatabase.storePrediction({
+          type: 'recurring_error',
+          service: svc,
+          issue: `${data.count} recurring errors detected - pattern may continue`,
+          confidence: Math.min(0.85, 0.5 + data.count / 20),
+          timeHorizon: 'ongoing',
+          basedOn: { errorCount: data.count }
+        });
+        predictions.push(prediction);
+      }
+    }
+
+    res.json({
+      generated: predictions.length,
+      predictions,
+      basedOn: {
+        errorTrends: trends.byHour.length,
+        metricsHistory: metricsHistory.length,
+        services: Object.keys(trends.byService)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// METRICS HISTORY API ENDPOINTS
+// ============================================
+
+// Store metrics snapshot
+app.post('/api/metrics/store', async (req, res) => {
+  const { service, cpu, memory, memoryUsage, memoryLimit, networkRx, networkTx, status } = req.body;
+
+  if (!service) {
+    return res.status(400).json({ error: 'service is required' });
+  }
+
+  try {
+    const entry = await logDatabase.storeMetrics({
+      service,
+      cpu: cpu || 0,
+      memory: memory || 0,
+      memoryUsage: memoryUsage || 0,
+      memoryLimit: memoryLimit || 0,
+      networkRx: networkRx || 0,
+      networkTx: networkTx || 0,
+      status: status || 'unknown'
+    });
+    res.json({ success: true, entry });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get metrics history
+app.get('/api/metrics/history/:service', async (req, res) => {
+  const { service } = req.params;
+  const { hours } = req.query;
+
+  try {
+    const history = await logDatabase.getMetricsHistory(service, parseInt(hours) || 24);
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// ENHANCED EXPORT API ENDPOINTS
+// ============================================
+
+// Export all data with historical context
+app.get('/api/export/full', async (req, res) => {
+  const { startDate, endDate, service, format } = req.query;
+
+  try {
+    const [logs, errors, resolutions, predictions, metrics] = await Promise.all([
+      logDatabase.searchLogs({ startDate, endDate, service, limit: 5000 }),
+      logDatabase.getAllErrors({ startDate, endDate, service }),
+      logDatabase.getSimilarResolutions('', service, 100),
+      logDatabase.getActivePredictions(service),
+      logDatabase.getMetricsHistory(service, 168) // 7 days
+    ]);
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      filters: { startDate, endDate, service },
+      summary: {
+        totalLogs: logs.length,
+        totalErrors: errors.length,
+        totalResolutions: resolutions.length,
+        activePredictions: predictions.length,
+        metricsDataPoints: metrics.length
+      },
+      logs,
+      errors,
+      resolutions,
+      predictions,
+      metricsHistory: metrics
+    };
+
+    if (format === 'csv') {
+      // Convert to CSV format
+      const csvRows = ['timestamp,service,level,message'];
+      logs.forEach(log => {
+        csvRows.push(`"${log.timestamp}","${log.service}","${log.level}","${(log.message || '').replace(/"/g, '""')}"`);
+      });
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=loglens-export-${Date.now()}.csv`);
+      res.send(csvRows.join('\n'));
+    } else {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=loglens-export-${Date.now()}.json`);
+      res.json(exportData);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export errors with resolution history
+app.get('/api/export/errors', async (req, res) => {
+  const { startDate, endDate, service, includeResolutions } = req.query;
+
+  try {
+    const errors = await logDatabase.getAllErrors({ startDate, endDate, service });
+
+    let exportData = { errors };
+
+    if (includeResolutions === 'true') {
+      const resolutions = await logDatabase.getSimilarResolutions('', service, 500);
+      exportData.resolutions = resolutions;
+    }
+
+    res.json(exportData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update error status
+app.patch('/api/errors/:errorHash/status', async (req, res) => {
+  const { errorHash } = req.params;
+  const { status } = req.body;
+
+  if (!status || !['new', 'investigating', 'resolved', 'ignored'].includes(status)) {
+    return res.status(400).json({ error: 'Valid status required: new, investigating, resolved, ignored' });
+  }
+
+  try {
+    await logDatabase.updateErrorStatus(errorHash, status);
+    io.emit('error-status-updated', { errorHash, status });
+    res.json({ success: true, errorHash, status });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Apply generated fix to source code
 app.post('/api/apply-fix', async (req, res) => {
   const { fixedCode, serviceName, fileName } = req.body;
@@ -1143,7 +1465,8 @@ app.post('/api/rebuild-service', async (req, res) => {
 
 // Start server
 server.listen(PORT, () => {
-  const dbStatus = logDatabase.isReady ? 'SQLite Ready ✓' : 'SQLite Disabled';
+  const dbStats = logDatabase.getStats();
+  const dbStatus = dbStats.mode === 'supabase' ? 'Supabase ✓' : 'In-Memory';
 
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
@@ -1156,7 +1479,7 @@ server.listen(PORT, () => {
 ║   Frontend:  ${FRONTEND_URL}                    ║
 ║                                                           ║
 ║   AI:        ${GEMINI_API_KEY ? 'Gemini Enabled ✓' : 'Disabled (No API Key)'}                        ║
-║   Database:  ${dbStatus}                          ║
+║   Database:  ${dbStatus}                             ║
 ║   Source:    ${sourceCodeManager.mode} mode                         ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝

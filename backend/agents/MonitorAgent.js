@@ -1,12 +1,21 @@
 /**
  * Monitor Agent
  * Collects and monitors service metrics from Docker (no AI)
+ * Now stores metrics to database for historical analysis
  */
 
 const { exec } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);
+
+// Database for storing metrics history
+let logDatabase = null;
+try {
+  logDatabase = require('../database/LogDatabase');
+} catch (e) {
+  console.log('[MonitorAgent] Database not available for metrics storage');
+}
 
 class MonitorAgent {
   constructor(options = {}) {
@@ -156,6 +165,22 @@ class MonitorAgent {
     // Maintain history limit
     if (history.length > this.historyLimit) {
       history.shift();
+    }
+
+    // Store to database for long-term analysis (async, non-blocking)
+    if (logDatabase && logDatabase.storeMetrics) {
+      logDatabase.storeMetrics({
+        service: serviceName,
+        cpu: metrics.cpuPercent,
+        memory: metrics.memoryPercent,
+        memoryUsage: metrics.memoryUsedMB,
+        memoryLimit: metrics.memoryTotalMB,
+        networkRx: 0,
+        networkTx: 0,
+        status: metrics.status
+      }).catch(() => {
+        // Ignore database errors - non-critical
+      });
     }
   }
 
