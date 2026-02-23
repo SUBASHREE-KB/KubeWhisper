@@ -7,6 +7,7 @@ const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { PromptTemplate } = require('@langchain/core/prompts');
 const fs = require('fs').promises;
 const path = require('path');
+const sourceCodeManager = require('../services/SourceCodeManager');
 
 class CodeFixAgent {
   constructor(apiKey) {
@@ -18,7 +19,7 @@ class CodeFixAgent {
 
     this.model = new ChatGoogleGenerativeAI({
       apiKey: apiKey,
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       temperature: 0.1, // Low temperature for precise code generation
       maxOutputTokens: 4096
     });
@@ -78,48 +79,40 @@ If you cannot identify the exact problematic code, respond with:
   }
 
   /**
-   * Read source file from the services directory
+   * Read source file using SourceCodeManager
+   * Respects user's configured source code mode (local path or GitHub)
    * @param {string} serviceName - Name of the service (e.g., 'api-gateway', 'user-service')
    * @param {string} fileName - Name of the file (e.g., 'index.js')
-   * @returns {Promise<{content: string, filePath: string}>}
+   * @returns {Promise<{content: string, filePath: string, source: string}>}
    */
   async readSourceFile(serviceName, fileName = 'index.js') {
-    // Normalize service name
-    const normalizedService = serviceName.toLowerCase().replace(/[_\s]/g, '-');
+    // Use SourceCodeManager to read file (respects user's configured path)
+    const result = await sourceCodeManager.readFile(serviceName, fileName);
 
-    // Build possible paths dynamically (no hardcoded paths)
-    const basePaths = [
-      path.join(__dirname, '..', '..', 'services'),
-      path.join(process.cwd(), 'services'),
-      path.join(process.env.PROJECT_ROOT || process.cwd(), 'services')
-    ];
+    if (result && result.content) {
+      console.log(`[CodeFixAgent] Read source file via SourceCodeManager: ${result.path} (${result.source})`);
+      return {
+        content: result.content,
+        filePath: result.path,
+        source: result.source
+      };
+    }
 
-    for (const basePath of basePaths) {
-      const filePath = path.join(basePath, normalizedService, fileName);
-      try {
-        const content = await fs.readFile(filePath, 'utf-8');
-        console.log(`[CodeFixAgent] Read source file: ${filePath}`);
-        return { content, filePath };
-      } catch (err) {
-        // Try next path
+    // Try database.js for user-service if index.js not found
+    const mappedService = sourceCodeManager.mapServiceName(serviceName);
+    if (mappedService === 'user-service' && fileName === 'index.js') {
+      const dbResult = await sourceCodeManager.readFile(serviceName, 'database.js');
+      if (dbResult && dbResult.content) {
+        console.log(`[CodeFixAgent] Read database.js via SourceCodeManager: ${dbResult.path}`);
+        return {
+          content: dbResult.content,
+          filePath: dbResult.path,
+          source: dbResult.source
+        };
       }
     }
 
-    // Try database.js for user-service
-    if (normalizedService === 'user-service' && fileName === 'index.js') {
-      for (const basePath of basePaths) {
-        const filePath = path.join(basePath, normalizedService, 'database.js');
-        try {
-          const content = await fs.readFile(filePath, 'utf-8');
-          console.log(`[CodeFixAgent] Read source file: ${filePath}`);
-          return { content, filePath };
-        } catch (err) {
-          // Try next path
-        }
-      }
-    }
-
-    throw new Error(`Could not find source file for service: ${serviceName}`);
+    throw new Error(`Could not find source file for service: ${serviceName} (mode: ${sourceCodeManager.mode})`);
   }
 
   /**
@@ -526,6 +519,17 @@ If you cannot identify the exact problematic code, respond with:
    * @returns {Promise<{success: boolean, backup: string}>}
    */
   async applyFix(filePath, oldCode, newCode) {
+    // Guard: Cannot auto-apply fixes in GitHub mode
+    if (sourceCodeManager.mode === 'github') {
+      console.log('[CodeFixAgent] GitHub mode detected - cannot auto-apply fixes');
+      return {
+        success: false,
+        error: 'Auto-apply is not supported for GitHub repositories. Please copy the fix and apply it manually via a pull request.',
+        requiresManualApply: true,
+        mode: 'github'
+      };
+    }
+
     try {
       // Read current content
       const content = await fs.readFile(filePath, 'utf-8');

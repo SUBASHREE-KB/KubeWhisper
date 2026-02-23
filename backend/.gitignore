@@ -36,3 +36,5 @@ coverage/
 package-lock.json
 Dockerfile
 .env.example
+
+database/supabase-schema.sql

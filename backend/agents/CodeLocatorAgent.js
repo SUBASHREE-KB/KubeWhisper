@@ -5,7 +5,7 @@
 
 const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { PromptTemplate } = require('@langchain/core/prompts');
-const { readAllServiceCode, mapServiceName } = require('../utils/codeReader');
+const sourceCodeManager = require('../services/SourceCodeManager');
 
 class CodeLocatorAgent {
   constructor(apiKey) {
@@ -17,7 +17,7 @@ class CodeLocatorAgent {
 
     this.model = new ChatGoogleGenerativeAI({
       apiKey: apiKey,
-      model: 'gemini-1.5-flash',  // Use Flash for speed
+      model: 'gemini-2.5-flash',  // Use Flash for speed
       temperature: 0.2,
       maxOutputTokens: 1024
     });
@@ -68,12 +68,20 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
   async locateCode(analysis, serviceName) {
     console.log('[CodeLocatorAgent] Locating code in:', serviceName);
 
-    // Map service name to directory name
-    const dirName = mapServiceName(serviceName);
+    // Map service name to directory name using SourceCodeManager
+    const dirName = sourceCodeManager.mapServiceName(serviceName);
 
     try {
-      // Read all source code from the service
-      const codeFiles = await readAllServiceCode(dirName);
+      // Read all source code from the service using SourceCodeManager
+      const fileList = await sourceCodeManager.listFiles(serviceName);
+      const codeFiles = {};
+
+      for (const fileName of fileList) {
+        const result = await sourceCodeManager.readFile(serviceName, fileName);
+        if (result && result.content) {
+          codeFiles[fileName] = result.content;
+        }
+      }
 
       if (Object.keys(codeFiles).length === 0) {
         console.warn('[CodeLocatorAgent] No source files found for:', dirName);
@@ -329,7 +337,7 @@ Respond ONLY with valid JSON (no markdown code blocks, no backticks):
       explanation: `Error in ${normalizedService}: ${analysis?.rootCause || 'Error detected in service'}`,
       suggestionPreview: 'Review service logs and implement proper error handling',
       serviceName: normalizedService,
-      serviceDir: mapServiceName(normalizedService),
+      serviceDir: sourceCodeManager.mapServiceName(normalizedService),
       confidence: 'low',
       fallback: true
     };

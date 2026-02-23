@@ -17,7 +17,7 @@ class FixGeneratorAgent {
 
     this.model = new ChatGoogleGenerativeAI({
       apiKey: apiKey,
-      model: 'gemini-1.5-flash',  // Use Flash for speed
+      model: 'gemini-2.5-flash',  // Use Flash for speed
       temperature: 0.3,
       maxOutputTokens: 2048
     });

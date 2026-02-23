@@ -1,6 +1,18 @@
 /**
  * Code Reader Utility
  * Reads source code from microservices for analysis
+ *
+ * @deprecated LEGACY - This module uses hardcoded paths and ignores user configuration.
+ * New code should use SourceCodeManager instead, which respects the user's configured
+ * source code mode (local path or GitHub) from the Settings page.
+ *
+ * Import SourceCodeManager like this:
+ *   const sourceCodeManager = require('../services/SourceCodeManager');
+ *
+ * Then use:
+ *   sourceCodeManager.listFiles(serviceName)
+ *   sourceCodeManager.readFile(serviceName, fileName)
+ *   sourceCodeManager.mapServiceName(logServiceName)
  */
 
 const fs = require('fs').promises;

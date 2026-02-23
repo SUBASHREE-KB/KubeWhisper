@@ -73,7 +73,7 @@ const logCollector = new LogCollector({
 });
 
 const correlatorAgent = new CorrelatorAgent({
-  timeWindowMs: 5000
+  timeWindowMs: 30000
 });
 
 const analyzerAgent = new AnalyzerAgent(GEMINI_API_KEY);
