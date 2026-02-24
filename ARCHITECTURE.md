@@ -677,8 +677,3 @@ CREATE TABLE metrics_history (
 | **TailwindCSS** | Utility-first, fast styling, consistent design |
 | **Supabase** | PostgreSQL with realtime, easy setup, generous free tier |
 
----
-
-*Last updated: February 2026*
-
-*LogLens Architecture Documentation*
