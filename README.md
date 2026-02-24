@@ -13,184 +13,249 @@
 
 ## Overview
 
-LogLens is an intelligent observability platform that transforms microservice debugging from hours of manual investigation into seconds of automated analysis. It monitors distributed systems in real-time, detects errors instantly, identifies root causes using AI, visualizes error propagation, and generates production-ready code fixes.
+LogLens is an intelligent observability platform that transforms microservice debugging from hours of manual investigation into seconds of automated analysis. It monitors your Docker containers in real-time, detects errors instantly, identifies root causes using AI, visualizes error propagation, and generates production-ready code fixes.
 
-**The Problem:** When a microservice fails at 3 AM, engineers spend hours grep-ing through logs, correlating events across services, and tracing error propagation. By the time the root cause is found, users have suffered and revenue has been lost.
-
-**The Solution:** LogLens automates this entire workflow. It watches your services, detects errors the moment they happen, uses AI to understand what went wrong, shows you exactly where the problem is in your code, and generates a fix you can apply with one click.
+**How it works:**
+- You run your microservices in Docker containers
+- LogLens monitors those containers and streams their logs
+- When errors occur, AI analyzes the root cause
+- You configure your source code path so LogLens can generate fixes
 
 ---
 
 ## Key Features
 
-### AI-Powered Analysis
-- **Root Cause Identification** - Google Gemini analyzes logs and identifies the exact technical failure
-- **Code Location Detection** - Pinpoints the exact file, function, and line number causing issues
-- **Automated Fix Generation** - Produces production-ready code fixes with explanations
-- **Error Classification** - Categorizes errors (timeout, memory leak, null pointer, etc.)
-
-### Real-Time Monitoring
-- **Live Log Streaming** - Aggregates logs from all Docker containers in real-time
-- **Pattern Detection** - Automatically detects errors, warnings, timeouts, and failures
-- **Service Health Metrics** - CPU, memory, network I/O per service
-- **Predictive Insights** - ML-based predictions for error spikes and resource exhaustion
-
-### Visualization
-- **Attack Graph** - Interactive visualization showing how errors propagate across services
-- **Error Timeline** - Chronological view of error events
-- **Code Diff Viewer** - Side-by-side comparison of original and fixed code
-- **Health Dashboard** - Real-time service status overview
-
-### Flexibility
-- **Auto Service Discovery** - Automatically detects Docker containers
-- **GitHub Integration** - Analyze code directly from repositories
-- **Local Source Support** - Works with local codebases
-- **Data Export** - Export logs and analytics as JSON/CSV
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                 LogLens                                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│   ┌─────────────────┐          ┌─────────────────┐          ┌─────────────┐ │
-│   │    Frontend     │◀────────▶│     Backend     │◀────────▶│   Docker    │ │
-│   │   React/Vite    │ WebSocket│   Express.js    │  API     │   Engine    │ │
-│   │   Port: 5173    │          │   Port: 4000    │          │             │ │
-│   └─────────────────┘          └────────┬────────┘          └─────────────┘ │
-│                                         │                                    │
-│                          ┌──────────────┼──────────────┐                    │
-│                          ▼              ▼              ▼                    │
-│                    ┌──────────┐  ┌──────────┐  ┌──────────┐                 │
-│                    │Correlator│  │ Analyzer │  │   Fix    │                 │
-│                    │  Agent   │  │  Agent   │  │Generator │                 │
-│                    │(JS-based)│  │(Gemini AI)│ │(Gemini AI)│                │
-│                    └──────────┘  └──────────┘  └──────────┘                 │
-│                                                                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                           Monitored Microservices                            │
-│   ┌───────────────┐    ┌───────────────┐    ┌───────────────┐              │
-│   │  API Gateway  │───▶│ User Service  │───▶│  DB Service   │              │
-│   │   Port:3001   │    │   Port:3002   │    │   Port:3003   │              │
-│   └───────────────┘    └───────────────┘    └───────────────┘              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-For detailed architecture, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+- **Real-Time Log Streaming** - Live collection from your Docker containers
+- **AI-Powered Root Cause Analysis** - Google Gemini identifies why errors occurred
+- **Code Location Detection** - Pinpoints exact file, function, and line number
+- **Automated Fix Generation** - Produces production-ready code fixes
+- **Attack Graph Visualization** - Interactive diagram showing error propagation
+- **Predictive Insights** - ML-based predictions for error trends
+- **Service Health Monitoring** - Real-time CPU, memory, network metrics
 
 ---
 
 ## Prerequisites
 
-| Requirement | Version | Installation |
-|-------------|---------|--------------|
-| **Node.js** | >= 18.0.0 | [nodejs.org](https://nodejs.org) |
-| **npm** | >= 9.0.0 | Included with Node.js |
-| **Docker** | >= 24.0.0 | [docker.com](https://docker.com) |
-| **Docker Compose** | >= 2.20.0 | Included with Docker Desktop |
-| **Git** | >= 2.40.0 | [git-scm.com](https://git-scm.com) |
+### Required Software
 
-### API Keys Required
+| Software | Version | Installation | Purpose |
+|----------|---------|--------------|---------|
+| **Node.js** | >= 18.0.0 | [nodejs.org](https://nodejs.org) | Runtime for LogLens |
+| **npm** | >= 9.0.0 | Included with Node.js | Package management |
+| **Docker Desktop** | >= 24.0.0 | [docker.com](https://docker.com) | Your microservices run here |
+| **Git** | >= 2.40.0 | [git-scm.com](https://git-scm.com) | Clone repository |
 
-| Service | Purpose | Get Key |
-|---------|---------|---------|
-| **Google Gemini** | AI analysis | [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| **Supabase** (Optional) | Cloud persistence | [Supabase](https://supabase.com/dashboard) |
+### Required API Key
+
+| Service | Purpose | How to Get |
+|---------|---------|------------|
+| **Google Gemini API** | AI-powered analysis and fix generation | [Google AI Studio](https://aistudio.google.com/app/apikey) (Free tier available) |
+
+### Your Setup Requirements
+
+For LogLens to work, you need:
+
+1. **Docker containers running** - Your microservices must be running in Docker
+2. **Source code accessible** - Either locally on your machine OR via GitHub
+3. **Docker Desktop running** - LogLens connects to Docker to stream logs
 
 ---
 
-## Quick Start
+## Installation
 
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/SUBASHREE-KB/loglens.git
+git clone https://github.com/yourusername/loglens.git
 cd loglens
 ```
 
-### Step 2: Configure Environment
+### Step 2: Install Backend Dependencies
 
 ```bash
+cd backend
+npm install
+```
+
+### Step 3: Install Frontend Dependencies
+
+```bash
+cd ../frontend
+npm install
+```
+
+### Step 4: Configure Environment Variables
+
+```bash
+# Go back to root directory
+cd ..
+
 # Copy example environment file
 cp .env.example .env
 ```
 
-Edit `.env` and add your Gemini API key:
+Edit the `.env` file with your settings:
 
 ```env
-# Required
+# REQUIRED: Your Google Gemini API Key
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# Optional
+# Backend server port
 PORT=4000
+
+# Frontend URL (for CORS)
 FRONTEND_URL=http://localhost:5173
+
+# Service Discovery Mode
+# - auto: Discovers all running Docker containers
+# - manual: Only monitor specific containers (set MANUAL_SERVICES)
+# - pattern: Match containers by regex (set SERVICE_PATTERNS)
 DISCOVERY_MODE=auto
-SOURCE_CODE_MODE=local
+
+# For manual mode - comma-separated container names
+# MANUAL_SERVICES=my-api,my-database,my-worker
+
+# For pattern mode - regex patterns
+# SERVICE_PATTERNS=^myapp-.*
+
+# Optional: Supabase for data persistence
+# Without this, data is stored in memory and lost on restart
+# SUPABASE_URL=https://your-project.supabase.co
+# SUPABASE_KEY=your_supabase_anon_key
+
+# Note: Source code settings (for fix generation) are configured
+# via the Settings page in the dashboard - no need to set them here
 ```
 
-### Step 3: Install Dependencies
+---
+
+## Running LogLens
+
+### Step 1: Make Sure Docker Desktop is Running
+
+LogLens connects to Docker to monitor your containers. Ensure Docker Desktop is running.
+
+### Step 2: Make Sure Your Microservices are Running in Docker
+
+LogLens monitors Docker containers. You need your own services running:
 
 ```bash
-# Backend dependencies
-cd backend
-npm install
-
-# Frontend dependencies
-cd ../frontend
-npm install
-
-# Return to root
-cd ..
-```
-
-### Step 4: Start the Application
-
-**Option A: Using Docker Compose (Recommended)**
-
-```bash
-# Start all services (microservices + backend + frontend)
+# Example: If you have your own docker-compose
+cd /path/to/your/project
 docker-compose up -d
 
-# View logs
-docker-compose logs -f
-
-# Stop all services
-docker-compose down
+# Verify containers are running
+docker ps
 ```
 
-**Option B: Manual Start (Development)**
+### Step 3: Start LogLens Backend
+
+Open a terminal:
 
 ```bash
-# Terminal 1: Start demo microservices
-docker-compose -f docker-compose.services.yml up -d
-
-# Terminal 2: Start backend
 cd backend
 npm run dev
+```
 
-# Terminal 3: Start frontend
+You should see:
+```
+[Server] Initializing agents...
+[SourceCodeManager] Initialized in local mode
+[LogDatabase] Ready (mode: in-memory)
+[Server] LogLens Backend running on port 4000
+```
+
+### Step 4: Start LogLens Frontend
+
+Open another terminal:
+
+```bash
 cd frontend
 npm run dev
 ```
 
-### Step 5: Access the Dashboard
+You should see:
+```
+VITE v5.0.8  ready in 500 ms
 
-Open **http://localhost:5173** in your browser.
+➜  Local:   http://localhost:5173/
+```
+
+### Step 5: Open the Dashboard
+
+Open your browser and go to: **http://localhost:5173**
 
 ---
 
-## Application URLs
+## Using the Demo Microservices (Optional)
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Dashboard** | http://localhost:5173 | Main LogLens interface |
-| **Backend API** | http://localhost:4000 | REST API and WebSocket |
-| **API Gateway** | http://localhost:3001 | Demo microservice |
-| **User Service** | http://localhost:3002 | Demo microservice |
-| **DB Service** | http://localhost:3003 | Demo microservice |
+If you don't have your own microservices, we provide demo services for testing:
+
+```bash
+# Start the demo microservices
+docker-compose -f docker-compose.services.yml up -d
+
+# This starts:
+# - api-gateway (port 3001)
+# - user-service (port 3002)
+# - db-service (port 3003)
+# - auth-service (port 3004)
+# - order-service (port 3005)
+```
+
+The demo services simulate realistic errors (timeouts, memory issues, etc.) so you can see LogLens in action.
+
+To generate traffic and trigger errors:
+```bash
+# Start the traffic generator
+cd traffic-generator
+npm install
+npm start
+```
+
+---
+
+## Configuration Guide
+
+### Configuring Service Discovery
+
+LogLens auto-discovers Docker containers. Configure via the **Settings** page:
+
+| Mode | Description |
+|------|-------------|
+| **Auto** | Monitor ALL running Docker containers |
+| **Manual** | Monitor only specific containers you specify |
+| **Pattern** | Match containers using regex patterns |
+
+By default, LogLens uses **Auto** mode and discovers all running containers.
+
+### Configuring Source Code Access (For Fix Generation)
+
+For LogLens to generate code fixes, it needs access to your source code. Configure this from the **Settings** page in the dashboard:
+
+1. Open LogLens dashboard (http://localhost:5173)
+2. Click **Settings** in the sidebar
+3. Under **Source Code Configuration**, choose:
+
+| Mode | Description |
+|------|-------------|
+| **Local Path** | Browse and select your services folder on your machine |
+| **GitHub** | Enter your GitHub token, repository, and branch |
+| **None** | Disable fix generation (analysis still works) |
+
+**For Local Path:** Your folder structure should look like:
+```
+your-services-folder/
+├── api-gateway/
+│   └── index.js
+├── user-service/
+│   └── index.js
+└── db-service/
+    └── index.js
+```
+
+The folder names should match your Docker container names.
 
 ---
 
@@ -199,8 +264,8 @@ Open **http://localhost:5173** in your browser.
 ### 1. Dashboard Overview
 
 When you open LogLens, you'll see:
-- **Service Cards** - Health status of each monitored service
-- **Live Log Stream** - Real-time logs from all services
+- **Service Cards** - Health status of each monitored Docker container
+- **Live Log Stream** - Real-time logs from all containers
 - **Recent Errors** - Clickable list of detected errors
 - **System Metrics** - CPU, memory, request counts
 
@@ -211,9 +276,9 @@ When you open LogLens, you'll see:
    - Correlates related logs within ±30 seconds
    - AI identifies root cause and severity
    - Locates exact code causing the issue
-3. View the analysis:
+3. View the analysis results:
    - Root cause explanation
-   - Error propagation path
+   - Error propagation path (Attack Graph)
    - Code location (file:line)
    - Recommended actions
 
@@ -227,56 +292,21 @@ When you open LogLens, you'll see:
    - Explanation of changes
 4. Click **"Apply Fix"** to apply (creates automatic backup)
 
+**Note:** First configure your source code path in **Settings** page (local folder or GitHub).
+
 ### 4. Attack Graph
 
 The Attack Graph visualizes error propagation:
 - **Red nodes** - Error origin service
 - **Orange nodes** - Affected services
 - **Edges** - Error propagation path
-- **Labels** - Error types and severity
 
 ### 5. Predictive Insights
 
-Navigate to the **Insights** page to see:
+Navigate to **Insights** page to see:
 - Error trend predictions
 - Resource exhaustion warnings
 - Recurring pattern alerts
-- Historical analytics
-
----
-
-## Configuration
-
-### Discovery Modes
-
-| Mode | Description | Configuration |
-|------|-------------|---------------|
-| `auto` | Discovers all running containers | `DISCOVERY_MODE=auto` |
-| `manual` | Monitor specific containers | `MANUAL_SERVICES=api,db,auth` |
-| `pattern` | Regex-based matching | `SERVICE_PATTERNS=^myapp-.*` |
-
-### Source Code Access
-
-**Local Mode:**
-```env
-SOURCE_CODE_MODE=local
-LOCAL_CODE_PATH=../services
-```
-
-**GitHub Mode:**
-```env
-SOURCE_CODE_MODE=github
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-GITHUB_REPO=username/repository
-GITHUB_BRANCH=main
-```
-
-### Database Persistence (Optional)
-
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your_supabase_anon_key
-```
 
 ---
 
@@ -287,31 +317,34 @@ loglens/
 ├── backend/
 │   ├── server.js              # Main Express server
 │   ├── agents/                # AI analysis agents
-│   │   ├── AnalyzerAgent.js   # Root cause analysis
-│   │   ├── CodeFixAgent.js    # Code fix generation
-│   │   ├── CodeLocatorAgent.js # Code location
-│   │   ├── CorrelatorAgent.js # Log correlation
-│   │   ├── FixGeneratorAgent.js # Fix generation
+│   │   ├── AnalyzerAgent.js   # Root cause analysis (Gemini AI)
+│   │   ├── CodeFixAgent.js    # Fix generation (Gemini AI)
+│   │   ├── CodeLocatorAgent.js # Code location (Gemini AI)
+│   │   ├── CorrelatorAgent.js # Log correlation (rule-based)
 │   │   └── MonitorAgent.js    # Metrics collection
-│   ├── collectors/            # Log collection
-│   ├── database/              # Persistence layer
-│   ├── services/              # Service discovery
+│   ├── collectors/
+│   │   └── LogCollector.js    # Docker log streaming
+│   ├── database/
+│   │   └── LogDatabase.js     # In-memory + Supabase storage
+│   ├── services/
+│   │   ├── ServiceDiscovery.js    # Docker container discovery
+│   │   └── SourceCodeManager.js   # Local/GitHub code access
 │   └── package.json
 ├── frontend/
 │   ├── src/
 │   │   ├── components/        # React components
 │   │   ├── pages/             # Page components
-│   │   ├── hooks/             # Custom hooks
+│   │   ├── hooks/             # Custom hooks (useSocket)
 │   │   └── App.jsx
 │   └── package.json
-├── services/                  # Demo microservices
+├── services/                  # Demo microservices (optional)
 │   ├── api-gateway/
 │   ├── user-service/
 │   ├── db-service/
 │   ├── auth-service/
 │   └── order-service/
-├── docker-compose.yml         # Full stack
-├── docker-compose.services.yml # Services only
+├── traffic-generator/         # Generates test traffic (optional)
+├── docker-compose.services.yml # Demo services only
 ├── .env.example               # Environment template
 ├── ARCHITECTURE.md            # System architecture
 └── README.md
@@ -324,36 +357,58 @@ loglens/
 ### Backend
 | Technology | Purpose |
 |------------|---------|
-| Node.js | Runtime environment |
-| Express.js | Web framework |
+| Node.js 18+ | Runtime environment |
+| Express.js | Web server |
 | Socket.io | Real-time WebSocket communication |
-| LangChain | AI orchestration framework |
-| Google Gemini | Large language model for analysis |
-| Dockerode | Docker API integration |
-| Supabase | PostgreSQL cloud database |
+| LangChain | AI orchestration |
+| Google Gemini | Large language model (AI analysis) |
+| Dockerode | Docker API client |
 
 ### Frontend
 | Technology | Purpose |
 |------------|---------|
 | React 18 | UI framework |
 | Vite | Build tool |
-| React Flow | Graph visualization |
+| React Flow | Graph visualization (Attack Graph) |
 | Recharts | Charts and analytics |
-| TailwindCSS | Utility-first styling |
+| TailwindCSS | Styling |
 | Socket.io Client | WebSocket client |
-| Lucide React | Icon library |
 
-### Infrastructure
-| Technology | Purpose |
-|------------|---------|
-| Docker | Containerization |
-| Docker Compose | Multi-container orchestration |
+---
+
+## Troubleshooting
+
+### "No services discovered"
+- Make sure Docker Desktop is running
+- Make sure you have containers running: `docker ps`
+- Check discovery mode in Settings
+
+### "Could not generate fix"
+- Go to **Settings** page and configure your source code path
+- For Local Path: browse and select the folder containing your service code
+- For GitHub: enter your personal access token and repository details
+- Make sure folder names match your Docker container names
+
+### "WebSocket connection failed"
+- Make sure backend is running on port 4000
+- Check if another process is using port 4000
+
+### "No API key" warnings
+- Add `GEMINI_API_KEY` to your `.env` file
+- Get a free key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+### Docker socket permission denied (Linux/Mac)
+```bash
+sudo chmod 666 /var/run/docker.sock
+# Or add user to docker group:
+sudo usermod -aG docker $USER
+```
 
 ---
 
 ## API Reference
 
-### REST Endpoints
+### REST Endpoints (Backend: http://localhost:4000)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -362,9 +417,8 @@ loglens/
 | `GET` | `/api/metrics` | Get current metrics |
 | `POST` | `/api/analyze-error` | Trigger error analysis |
 | `POST` | `/api/generate-fix` | Generate code fix |
-| `POST` | `/api/apply-targeted-fix` | Apply fix to source |
-| `GET` | `/api/predictions/generate` | Generate insights |
-| `POST` | `/api/export/full` | Export data |
+| `GET` | `/api/source-code/status` | Get source code config |
+| `POST` | `/api/source-code/configure` | Update source code config |
 
 ### WebSocket Events
 
@@ -375,33 +429,6 @@ loglens/
 | `error-detected` | Server → Client | Error notification |
 | `analysis-complete` | Server → Client | Analysis results |
 | `trigger-analysis` | Client → Server | Request analysis |
-
----
-
-## Troubleshooting
-
-### Docker Socket Permission Denied
-```bash
-# Linux/Mac
-sudo chmod 666 /var/run/docker.sock
-# Or add user to docker group
-sudo usermod -aG docker $USER
-```
-
-### Containers Not Discovered
-- Verify Docker is running: `docker ps`
-- Check discovery mode in Settings
-- Ensure containers have proper labels
-
-### AI Analysis Not Working
-- Verify GEMINI_API_KEY is set correctly
-- Check backend logs for API errors
-- System falls back to rule-based analysis if AI unavailable
-
-### WebSocket Connection Failed
-- Ensure backend is running on port 4000
-- Check CORS settings
-- Verify FRONTEND_URL environment variable
 
 ---
 
@@ -426,7 +453,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Google Gemini](https://ai.google.dev/) for AI capabilities
 - [LangChain](https://js.langchain.com/) for AI orchestration
 - [React Flow](https://reactflow.dev/) for graph visualization
-- [Supabase](https://supabase.com/) for database services
 
 ---
 
