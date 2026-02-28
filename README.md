@@ -33,7 +33,6 @@ LogLens is an intelligent observability platform that transforms microservice de
 - **AI-Powered Root Cause Analysis** - Google Gemini identifies why errors occurred
 - **Code Location Detection** - Pinpoints exact file, function, and line number
 - **Automated Fix Generation** - Produces production-ready code fixes
-- **Attack Graph Visualization** - Interactive diagram showing error propagation
 - **Predictive Insights** - ML-based predictions for error trends
 - **Service Health Monitoring** - Real-time CPU, memory, network metrics
 
@@ -252,7 +251,7 @@ When you open LogLens, you'll see:
    - Locates exact code causing the issue
 3. View the analysis results:
    - Root cause explanation
-   - Error propagation path (Attack Graph)
+   - Error propagation path
    - Code location (file:line)
    - Recommended actions
 
@@ -268,14 +267,7 @@ When you open LogLens, you'll see:
 
 **Note:** First configure your source code path in **Settings** page (local folder or GitHub).
 
-### 4. Attack Graph
-
-The Attack Graph visualizes error propagation:
-- **Red nodes** - Error origin service
-- **Orange nodes** - Affected services
-- **Edges** - Error propagation path
-
-### 5. Predictive Insights
+### 4. Predictive Insights
 
 Navigate to **Insights** page to see:
 - Error trend predictions
@@ -335,7 +327,7 @@ loglens/
 |------------|---------|
 | React 18 | UI framework |
 | Vite | Build tool |
-| React Flow | Graph visualization (Attack Graph) |
+| React Flow | Graph visualization  |
 | Recharts | Charts and analytics |
 | TailwindCSS | Styling |
 | Socket.io Client | WebSocket client |
